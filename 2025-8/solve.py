@@ -1,52 +1,18 @@
 import heapq
-import sys
 from typing import List
+from utils import DSU
 
 DIRECTIONS = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
-class DSU:
-    def __init__(self, n):
-        self.fa = list(range(n))
-        self.size = [1] * n
-
-    def getfa(self, x):
-        return x if x == self.fa[x] else self.getfa(self.fa[x])
-
-    def join(self, x, y):
-        fx = self.getfa(x)
-        fy = self.getfa(y)
-        if fx == fy: return
-        if self.size[fx] < self.size[fy]:
-            fx, fy = fy, fx
-        
-        self.fa[fy] = fx
-        self.size[fx] += self.size[fy]
-
-    def get_size(self, x):
-        return self.size[self.getfa(x)]
-
 
 class Canvas:
 
     def __init__(self, n, m):
         self.n, self.m = n, m
         self.grid = [[-1] * m for _ in range(n)]
-        self.box = None
-
-    def update_box(self, box):
-        
-        if self.box is None:
-            self.box = box
-        else:
-            self.box = (
-                (min(self.box[0][0], box[0][0]), min(self.box[0][1], box[0][1])),
-                (max(self.box[1][0], box[1][0]), max(self.box[1][1], box[1][1]))
-            )
     
     def count(self, c):
         return sum(l.count(c) for l in self.grid)
 
-    
     def largest_component(self):
         def get_id(x, y):
                 return y + x * self.m
@@ -55,27 +21,29 @@ class Canvas:
         
         for x in range(self.n):
             for y in range(self.m):
-                for dx, dy in DIRECTIONS:
+                if self.grid[x][y] == -1:
+                    continue
+                for dx, dy in ((0,1), (1,0)):
                     nx, ny = x + dx, y + dy
                     if nx < 0 or nx >= self.n or ny < 0 or ny >= self.m:
                         continue
                     if self.grid[x][y] == self.grid[nx][ny]:
-                        dsu.join(get_id(x, y), get_id(nx, ny))
+                        dsu.union(get_id(x, y), get_id(nx, ny))
 
         res = [0, 0]
         for x in range(self.n):
             for y in range(self.m):
                 c = self.grid[x][y]
                 if c >= 0:
-                    res[c] = max(res[c], dsu.get_size(get_id(x, y)))
+                    res[c] = max(res[c], dsu.size(get_id(x, y)))
         return res
 
-    def min_path(self):
-        s, t = self.box
+    def min_path(self, box):
+        s, t = box
         t = t[0] - 1, t[1] - 1
         sx, sy = s
-        d = {s: (0, 0)}
-        h = [((0, 0), s)]
+        d = {s: (0, 1)}
+        h = [((0, 1), s)]
         while h:
             cost, u = heapq.heappop(h)
             x, y = u
@@ -85,7 +53,7 @@ class Canvas:
                 return cost
             for dx, dy in DIRECTIONS:
                 v = nx, ny = x + dx, y + dy
-                if nx < 0 or nx >= self.n or ny < 0 or ny >= self.m:
+                if not(0 <= nx < self.n and 0 <= ny < self.m):
                     continue
                 ncost = cost[0] + (self.grid[sx][sy] != self.grid[nx][ny]), cost[1] + 1
                 if v not in d or d[v] > ncost:
@@ -98,32 +66,23 @@ class Shape:
 
     def __init__(self, c):
         self.color = c
-        self.cells = None
 
     def bounding_box(self):
         return ((0, 0), (0, 0)) # [upper left, lower right)
     
     def valid(self, x, y) -> bool:
-        pass
+        ...
         
     def get_cells(self):
-        if self.cells is not None:
-            return self.cells
-
-        self.cells = []
-        
         (x1, y1), (x2, y2) = self.bounding_box()
         
         for i in range(x1, x2):
             for j in range(y1, y2):
                 if self.valid(i, j):
-                    self.cells.append((i, j))
-        return self.cells
+                    yield i, j
 
     def paint(self, c: Canvas):
-        c.update_box(self.bounding_box())
-        cells = self.get_cells()
-        for x, y in cells:
+        for x, y in self.get_cells():
             c.grid[x][y] = self.color
 
 class Rectangle(Shape):
@@ -138,7 +97,7 @@ class Rectangle(Shape):
     def bounding_box(self):
         return ((self.x1, self.y1), (self.x2+1, self.y2+1))
     
-    def valid(self, x, y) -> bool:
+    def valid(self, x, y):
         return True
 
 class Circle(Shape):
@@ -152,9 +111,9 @@ class Circle(Shape):
     def bounding_box(self):
         return ((self.x-self.r, self.y-self.r), (self.x+self.r, self.y+self.r))
 
-    def valid(self, x0, y0):
-        len_x = min(abs(self.x-x0), abs(self.x-(x0+1)))
-        len_y = min(abs(self.y-y0), abs(self.y-(y0+1)))
+    def valid(self, x, y):
+        len_x = min(abs(self.x-x), abs(self.x-(x+1)))
+        len_y = min(abs(self.y-y), abs(self.y-(y+1)))
         return len_x**2 + len_y**2 < self.r**2
 
 class LineSegment(Shape):
@@ -181,17 +140,9 @@ class LineSegment(Shape):
         res = list(map(is_in, l))
         return max(res) == 1 and min(res) == -1
 
-DEBUG = False
-
-if not DEBUG:
-    sys.stdin = open("input.txt", "r", encoding="utf-8")
-
-readl = sys.stdin.readline
-
-def solve():
-    it = map(int, readl().split(','))
+def solve(data: str):
+    it = map(int, data.split(','))
     shapes: List[Shape] = []
-    canvas = Canvas(500, 500)
     cnt = [0, 0, 0]
     while True:
         x = next(it, None)
@@ -204,18 +155,28 @@ def solve():
         else:
             shapes.append(LineSegment(next(it), next(it), next(it), next(it), next(it)))
 
+    box = None
+
+    for shape in shapes:
+        nbox = shape.bounding_box()
+        if box is None:
+            box = nbox
+        else:
+            box = (
+                (min(box[0][0], nbox[0][0]), min(box[0][1], nbox[0][1])),
+                (max(box[1][0], nbox[1][0]), max(box[1][1], nbox[1][1]))
+            )
+
+    assert(box is not None)
+
+    yield cnt
+    yield box[1][0] - 1, box[1][1] - 1
+
+    # canvas expands infinitely, plus 1 to make path finding right
+    canvas = Canvas(box[1][0] + 1, box[1][1] + 1)
     for shape in shapes:
         shape.paint(canvas)
 
-    print(cnt)
-
-    print(canvas.box)
-
-    print(canvas.count(0), canvas.count(1))
-
-    print(canvas.largest_component())
-
-    print(canvas.min_path())
-
-if __name__ == "__main__":
-    solve()
+    yield canvas.count(0), canvas.count(1)
+    yield canvas.largest_component()
+    yield canvas.min_path(box)

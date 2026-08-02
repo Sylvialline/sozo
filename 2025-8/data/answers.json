@@ -1,0 +1,111 @@
+{
+  "data1a.txt": {
+    "rectangles": 17,
+    "circles": 11,
+    "line_segments": 13
+  },
+  "data1b.txt": {
+    "rectangles": 137,
+    "circles": 83,
+    "line_segments": 109
+  },
+  "data1c.txt": {
+    "rectangles": 1001,
+    "circles": 997,
+    "line_segments": 1003
+  },
+  "data2a.txt": {
+    "lower_right_cell": [
+      119,
+      89
+    ]
+  },
+  "data2b.txt": {
+    "lower_right_cell": [
+      359,
+      259
+    ]
+  },
+  "data2c.txt": {
+    "lower_right_cell": [
+      899,
+      649
+    ]
+  },
+  "data3a.txt": {
+    "black_cells": 7000,
+    "gray_cells": 0
+  },
+  "data3b.txt": {
+    "black_cells": 20469,
+    "gray_cells": 14504
+  },
+  "data3c.txt": {
+    "black_cells": 55775,
+    "gray_cells": 65958
+  },
+  "data4a.txt": {
+    "largest_black_component": 1200,
+    "largest_gray_component": 0
+  },
+  "data4b.txt": {
+    "largest_black_component": 184,
+    "largest_gray_component": 3136
+  },
+  "data4c.txt": {
+    "largest_black_component": 7540,
+    "largest_gray_component": 5783
+  },
+  "data5a.txt": {
+    "minimum_different_color_cells": 0,
+    "shortest_length": 207,
+    "a": [
+      5,
+      5
+    ],
+    "b": [
+      64,
+      44
+    ],
+    "color_of_a": "gray"
+  },
+  "data5b.txt": {
+    "minimum_different_color_cells": 1,
+    "shortest_length": 169,
+    "a": [
+      10,
+      10
+    ],
+    "b": [
+      109,
+      79
+    ],
+    "color_of_a": "gray"
+  },
+  "data5c.txt": {
+    "minimum_different_color_cells": 1,
+    "shortest_length": 381,
+    "a": [
+      8,
+      8
+    ],
+    "b": [
+      87,
+      57
+    ],
+    "color_of_a": "black"
+  },
+  "data5d.txt": {
+    "minimum_different_color_cells": 0,
+    "shortest_length": 263,
+    "a": [
+      20,
+      20
+    ],
+    "b": [
+      179,
+      119
+    ],
+    "color_of_a": "white"
+  }
+}
