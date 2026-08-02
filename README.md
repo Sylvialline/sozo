@@ -59,6 +59,18 @@ python run.py 2025-8 --pattern 'case\d+\.in'
 在 VS Code 中打开某个题目的 `solve.py` 后，也可以按
 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 运行当前题目的全部数据。
 
+## Python 考场速查库
+
+[`samples/`](samples/) 提供面向 C++17/STL 使用者的 Python 3 离线示例库，覆盖语法、
+标准库、文件处理、解析、容器、算法、矩阵、面向对象、调试、考试批处理和九个完整小
+任务。按场景查找文件时请查看 [`samples/README.md`](samples/README.md) 的完整索引。
+
+```powershell
+python samples/00_quick_reference/cpp_to_python_stl.py
+python samples/12_exam_workflows/full_exam_template.py
+python samples/run_all_samples.py
+```
+
 当前目录 `2025-8` 保持原位，因为自动移动目录会连带移动受保护的 `solve.py`。
 新题目建议使用零补齐的 `YYYY-MM` 命名；是否统一旧目录由仓库所有者决定并亲自操作。
 
@@ -99,6 +111,7 @@ def solve(data: str):
 ├── AGENTS.md          # solve.py 的保护规则
 ├── README.md          # 仓库理念和现场用法
 ├── run.py             # 稳定的批量运行入口
+├── samples/           # Python 考场速查、完整示例与批量自检
 ├── utils/             # 已验证的通用模块
 └── YYYY-MM/
     ├── solve.py       # 仅仓库所有者编辑

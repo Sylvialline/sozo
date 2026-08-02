@@ -1,0 +1,3 @@
+slope: 2.000
+intercept: 1.000
+mse: 0.000

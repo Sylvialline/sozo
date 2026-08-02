@@ -1,0 +1,4 @@
+[2026-08-01 09:00:00] INFO user=alice message=login
+[2026-08-01 09:01:00] WARN user=bob message=slow request
+[2026-08-01 09:02:00] ERROR user=alice message=timeout
+[2026-08-01 09:03:00] INFO user=alice message=retry succeeded

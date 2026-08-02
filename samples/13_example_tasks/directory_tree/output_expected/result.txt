@@ -1,0 +1,12 @@
+project/
+  data/
+    values.csv (12 B)
+  src/
+    code.txt (18 B)
+  README.md (15 B)
+extensions:
+.csv 1
+.md 1
+.txt 1
+total files: 3
+total bytes: 45

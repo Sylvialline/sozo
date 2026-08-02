@@ -1,0 +1,3 @@
+region_a: total=15, MA3=[2.0, 3.0, 4.0], slope=1.000, intercept=1.000
+region_b: total=18, MA3=[2.667, 3.333, 4.667], slope=1.000, intercept=1.600
+region_b - region_a total = 3
