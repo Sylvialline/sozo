@@ -120,6 +120,46 @@ def solve(data: str):
     └── data/          # 数据、标准答案和独立验证程序
 ```
 
+## `AnswerBook` 管理答案
+
+`AnswerBook` 负责执行 task、记录答案和耗时，并可将结果打印到终端或写入文件：
+
+```python
+from utils import AnswerBook, read_data as rd
+
+book = AnswerBook(timeout=2)
+book.run("1.a", task1, 6, 4, rd("1a"))
+book.run("1.b", task1, 100, 150, rd("1b"), timeout=5)
+book.run("1.c", task1, 10, 10, rd("1c"), timeout=None)
+
+book.print_json()  # 打印到终端
+book.write_json()  # 写入调用代码同级的 output.txt
+```
+
+`time` 以秒为单位加入每个答案子字典。`run()` 未指定 `timeout` 时使用类级限制，
+传入数值可覆盖它，显式传入 `None` 可关闭该项任务的限制。有超时限制的 task 会在
+独立子进程中执行，超限后子进程将被强制终止，并记录包含 `timeout`、`time` 和
+`timeout_limit` 的答案；task 及其参数和返回值必须支持 `pickle` 序列化。
+每项任务默认在 stderr 输出开始、完成、超时或失败日志，传入 `show_log=False`
+可以关闭。`write_json("result.json")` 可以指定其他文件名或路径。
+
+## `read_data()` 快速读取数据
+
+在题目代码中调用 `read_data("3a")`，会读取该代码文件同级 `data/` 目录中所有
+文件名包含 `3a` 的普通文件：
+
+```python
+from utils import read_data
+
+data = read_data("3a")
+```
+
+- 没有匹配时返回 `None`；
+- 恰好一个匹配时直接返回文件内容 `str`；
+- 多个匹配时返回 `{文件名: 文件内容}` 字典。
+
+匹配区分大小写，文件按文件名排序，并使用 UTF-8 解码。
+
 ## `utils/` 收录标准
 
 一个模块进入 `utils/` 前，应同时满足：
