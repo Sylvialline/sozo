@@ -223,6 +223,67 @@ class Exam:
                 raise TypeError("case 组必须是 Case 或 Series")
         return self
 
+    @staticmethod
+    def _default_series(task: Callable[..., Any]) -> Series:
+        name = getattr(task, "__name__", "")
+        if not name.startswith("task") or len(name) == 4:
+            raise ValueError(
+                "@exam.task 默认注册要求函数名形如 task1；"
+                "其他名称请显式传入 Case 或 Series"
+            )
+
+        parameters = tuple(inspect.signature(task).parameters.values())
+        if any(
+            parameter.kind is inspect.Parameter.VAR_POSITIONAL
+            for parameter in parameters
+        ):
+            raise TypeError(
+                "@exam.task 无法推导 *args 对应的输入文件数量；"
+                "请显式传入 Case 或 Series"
+            )
+        if any(
+            parameter.kind is inspect.Parameter.KEYWORD_ONLY
+            and parameter.default is inspect.Parameter.empty
+            for parameter in parameters
+        ):
+            raise TypeError(
+                "@exam.task 无法为必需的仅关键字参数提供输入；"
+                "请显式传入 Case 或 Series"
+            )
+
+        input_count = sum(
+            parameter.kind
+            in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            )
+            for parameter in parameters
+        )
+        return Series(name[4:], input_count=input_count)
+
+    def task(
+        self,
+        first: Callable[..., Any] | Case | Series,
+        /,
+        *groups: Case | Series,
+    ) -> Any:
+        """Register a task as ``@exam.task`` or ``@exam.task(...)``."""
+        if callable(first):
+            if groups:
+                raise TypeError(
+                    "直接传入 task 函数时不能再附加 Case 或 Series"
+                )
+            self.add(first, self._default_series(first))
+            return first
+
+        configured_groups = (first, *groups)
+
+        def decorator(task: Callable[..., Any]) -> Callable[..., Any]:
+            self.add(task, *configured_groups)
+            return task
+
+        return decorator
+
     def _validate_labels(self) -> None:
         seen: set[str] = set()
         duplicates: list[str] = []

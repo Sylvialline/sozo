@@ -133,25 +133,48 @@ def rd(name):
     return map(int, read_data(name).split(","))
 
 exam = Exam(reader=rd, timeout=2)
-exam.add(
-    task1,
+
+
+@exam.task(
     Series(
         "1",
         {"a": (6, 4), "b": (100, 150)},
         label_separator=".",
-    ),
+    )
 )
-exam.add(
-    task4,
-    Case("4.a", 2, 4, 4, 3, files=("4a", "4b")),
-)
-exam.execute()
+def task1(n, m, data):
+    ...
+
+
+@exam.task(Case("4.a", 2, 4, 4, 3, files=("4a", "4b")))
+def task4(a_n, a_m, b_n, b_m, a_data, b_data):
+    ...
+
+
+if __name__ == "__main__":
+    exam.execute()
 ```
 
 `Series("1")` 默认生成 `1a/1b/1c`，并分别读取 `1a/1b/1c`；如果每个
 case 需要两份数据，写成 `Series("3", input_count=2)`，它会读取
 `3a1/3a2`、`3b1/3b2`、`3c1/3c2`。映射中的 tuple 是放在数据前面的
 task 参数，因此推荐把 task 接口统一写成“普通参数在前，输入数据在后”。
+
+如果函数名是 `task1` 这类形式，而且所有位置参数都是数据输入，还可以直接写：
+
+```python
+@exam.task
+def task1(data):
+    ...
+
+
+@exam.task
+def task3(data1, data2):
+    ...
+```
+
+此时题号由函数名推导，位置参数数量决定每个 case 读取几份文件。装饰器返回原函数，
+因此 task 仍可脱离 `Exam` 单独调用。
 
 `Case(..., files=("4a", "4b"))` 会按顺序读取指定文件，并把结果追加到
 普通参数后。单项可传 `timeout=5` 覆盖 `Exam` 的类级超时，显式传
@@ -175,10 +198,12 @@ book.print_json()  # 打印到终端
 book.write_json()  # 写入调用代码同级的 output.txt
 ```
 
-`time` 以秒为单位加入每个答案子字典。`run()` 未指定 `timeout` 时使用类级限制，
-传入数值可覆盖它，显式传入 `None` 可关闭该项任务的限制。有超时限制的 task 会在
-独立子进程中执行，超限后子进程将被强制终止，并记录包含 `timeout`、`time` 和
-`timeout_limit` 的答案；task 及其参数和返回值必须支持 `pickle` 序列化。
+成功任务的答案固定使用 `{"result": task返回值, "time": 秒数}` 结构；即使 task
+返回字典，也完整放在 `result` 下，不会与 `time` 混在同一层。`run()` 未指定
+`timeout` 时使用类级限制，传入数值可覆盖它，显式传入 `None` 可关闭该项任务的
+限制。有超时限制的 task 会在独立子进程中执行，超限后子进程将被强制终止，并记录
+包含 `timeout`、`time` 和 `timeout_limit` 的答案；task 及其参数和返回值必须
+支持 `pickle` 序列化。
 每项任务默认在 stderr 输出开始、完成、超时或失败日志，传入 `show_log=False`
 可以关闭。`write_json("result.json")` 可以指定其他文件名或路径。
 

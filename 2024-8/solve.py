@@ -11,6 +11,9 @@ def rd(name: str) -> Iterable[int]:
     return map(int, data.split(','))
 
 
+exam = Exam(reader=rd)
+
+
 class Matrix:
     def __init__(self, n, m):
         self.n, self.m = n, m
@@ -166,6 +169,9 @@ def zero_count(A: Matrix, r, c):
 
     return res
 
+@exam.task(
+    Series("1", {"a": (6, 4), "b": (100, 150)}, label_separator="."),
+)
 def task1(n, m, data: Iterable[int]):
     a = Matrix.from_format(n, m, data, 1)
     res = a.max_row()
@@ -174,6 +180,13 @@ def task1(n, m, data: Iterable[int]):
         'sum': res[0]
     }
 
+@exam.task(
+    Series(
+        "2",
+        {"a": (6, 4), "b": (100, 150), "c": (10**6, 10**6)},
+        label_separator=".",
+    ),
+)
 def task2(n, m, data: Iterable[int]):
     a = Matrix.from_format(n, m, data, 2)
     res = a.max_row()
@@ -182,6 +195,13 @@ def task2(n, m, data: Iterable[int]):
         'sum': res[0]
     }
 
+@exam.task(
+    Series(
+        "3",
+        {"a": (4, 6), "b": (100, 150), "c": (10**6, 10**6)},
+        label_separator=".",
+    ),
+)
 def task3(n, m, data: Iterable[int]):
     a = Matrix.from_format(n, m, data, 3)
     a.transpose()
@@ -191,6 +211,25 @@ def task3(n, m, data: Iterable[int]):
         'sum': res[0]
     }
 
+@exam.task(
+    Case("4.a", 2, 4, 4, 3, files=("4a", "4b")),
+    Case(
+        "4.b",
+        10**6,
+        10**6,
+        10**6,
+        10**6,
+        files=("4c", "4d"),
+    ),
+    Case(
+        "4.c",
+        10**6,
+        10**6,
+        10**6,
+        10**6,
+        files=("4e", "4f"),
+    ),
+)
 def task4(A_n, A_m, B_n, B_m, A_data: Iterable[int], B_data: Iterable[int]):
     a = Matrix.from_format(A_n, A_m, A_data, 3)
     b = Matrix.from_format(B_n, B_m, B_data, 3)
@@ -200,6 +239,17 @@ def task4(A_n, A_m, B_n, B_m, A_data: Iterable[int], B_data: Iterable[int]):
         'sum': res[1]
     }
 
+@exam.task(
+    Series(
+        "5",
+        {
+            "a": (8, 6, 2, 3),
+            "b": (10**6, 10**6, 10, 10),
+            "c": (10**6, 10**6, 100, 100),
+        },
+        label_separator=".",
+    ),
+)
 def task5(n, m, r, c, data: Iterable[int]):
     a = Matrix.from_format(n, m, data, 3)
     # a.display()
@@ -210,57 +260,4 @@ def task5(n, m, r, c, data: Iterable[int]):
 
 
 if __name__ == "__main__":
-    exam = Exam(reader=rd)
-    exam.add(
-        task1,
-        Series("1", {"a": (6, 4), "b": (100, 150)}, label_separator="."),
-    )
-    exam.add(
-        task2,
-        Series(
-            "2",
-            {"a": (6, 4), "b": (100, 150), "c": (10**6, 10**6)},
-            label_separator=".",
-        ),
-    )
-    exam.add(
-        task3,
-        Series(
-            "3",
-            {"a": (4, 6), "b": (100, 150), "c": (10**6, 10**6)},
-            label_separator=".",
-        ),
-    )
-    exam.add(
-        task4,
-        Case("4.a", 2, 4, 4, 3, files=("4a", "4b")),
-        Case(
-            "4.b",
-            10**6,
-            10**6,
-            10**6,
-            10**6,
-            files=("4c", "4d"),
-        ),
-        Case(
-            "4.c",
-            10**6,
-            10**6,
-            10**6,
-            10**6,
-            files=("4e", "4f"),
-        ),
-    )
-    exam.add(
-        task5,
-        Series(
-            "5",
-            {
-                "a": (8, 6, 2, 3),
-                "b": (10**6, 10**6, 10, 10),
-                "c": (10**6, 10**6, 100, 100),
-            },
-            label_separator=".",
-        ),
-    )
     exam.execute()

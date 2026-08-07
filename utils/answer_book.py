@@ -380,11 +380,14 @@ class AnswerBook:
             )
             raise
 
-        answer = dict(result) if isinstance(result, Mapping) else {"result": result}
-        if "time" in answer:
-            self._log("FAILED", label, "task 返回值包含保留键 'time'")
-            raise KeyError("task 返回值不能包含保留键 'time'")
-        answer["time"] = elapsed
+        answer = {
+            "result": (
+                dict(result)
+                if isinstance(result, Mapping)
+                else result
+            ),
+            "time": elapsed,
+        }
         self.answers[label] = answer
         self._log("DONE", label, f"完成，用时 {elapsed:.6f} 秒")
         return answer

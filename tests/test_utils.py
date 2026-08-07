@@ -27,7 +27,7 @@ class AnswerBookTests(unittest.TestCase):
     def test_runs_task_and_adds_elapsed_time(self):
         with TemporaryDirectory() as temp_dir:
             book = self._make_book(Path(temp_dir))
-            result = {"value": 42}
+            result = {"value": 42, "time": "task-owned value"}
 
             with patch(
                 "utils.answer_book.perf_counter",
@@ -35,9 +35,18 @@ class AnswerBookTests(unittest.TestCase):
             ):
                 answer = book.run("1.a", lambda: result)
 
-            self.assertEqual(answer, {"value": 42, "time": 0.25})
+            self.assertEqual(
+                answer,
+                {
+                    "result": {
+                        "value": 42,
+                        "time": "task-owned value",
+                    },
+                    "time": 0.25,
+                },
+            )
             self.assertEqual(book.as_dict(), {"1.a": answer})
-            self.assertNotIn("time", result)
+            self.assertEqual(result["time"], "task-owned value")
 
     def test_wraps_non_mapping_results(self):
         with TemporaryDirectory() as temp_dir:
@@ -200,6 +209,60 @@ class ExamTests(unittest.TestCase):
         exec(compile(source, str(caller_path), "exec"), namespace)
         return namespace["make"](reader, **kwargs)
 
+    def test_bare_task_decorator_infers_series_and_preserves_function(self):
+        with TemporaryDirectory() as temp_dir:
+            loaded = []
+
+            def reader(name):
+                loaded.append(name)
+                return f"data:{name}"
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
+            )
+
+            @exam.task
+            def task8(left, right):
+                return [left, right]
+
+            self.assertEqual(
+                task8("left", "right"),
+                ["left", "right"],
+            )
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                loaded,
+                ["8a1", "8a2", "8b1", "8b2", "8c1", "8c2"],
+            )
+            self.assertEqual(list(book.answers), ["8a", "8b", "8c"])
+            self.assertEqual(
+                book.answers["8a"]["result"],
+                ["data:8a1", "data:8a2"],
+            )
+
+    def test_configured_task_decorator_registers_explicit_case(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                str.upper,
+                show_log=False,
+            )
+
+            @exam.task(Case("custom", 4, files=("data",)))
+            def solve(size, data):
+                return {"value": (size, data)}
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                book.answers["custom"]["result"]["value"],
+                (4, "DATA"),
+            )
+
     def test_series_generates_labels_parameters_and_data_file_names(self):
         with TemporaryDirectory() as temp_dir:
             loaded = []
@@ -230,7 +293,7 @@ class ExamTests(unittest.TestCase):
             self.assertEqual(loaded, ["3a1", "3a2", "3b1", "3b2"])
             self.assertEqual(list(book.answers), ["3.a", "3.b"])
             self.assertEqual(
-                book.answers["3.a"]["value"],
+                book.answers["3.a"]["result"]["value"],
                 (10, "data:3a1", "data:3a2"),
             )
 
@@ -249,7 +312,7 @@ class ExamTests(unittest.TestCase):
             book = exam.execute(output=None)
 
             self.assertEqual(
-                book.answers["4.a"]["args"],
+                book.answers["4.a"]["result"]["args"],
                 (2, 4, "4A", "4B"),
             )
 
@@ -268,7 +331,7 @@ class ExamTests(unittest.TestCase):
             book = exam.execute(output=None)
 
             self.assertEqual(
-                book.answers["nested"]["value"],
+                book.answers["nested"]["result"]["value"],
                 {"items": ["data:x"]},
             )
 
