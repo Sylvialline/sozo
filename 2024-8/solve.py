@@ -3,7 +3,7 @@ from collections import defaultdict, Counter
 from itertools import batched
 import math
 from typing import Iterable
-from utils import read_data, AnswerBook
+from utils import Case, Exam, Series, read_data
 import numpy as np
 
 def rd(name: str) -> Iterable[int]:
@@ -191,7 +191,7 @@ def task3(n, m, data: Iterable[int]):
         'sum': res[0]
     }
 
-def task4(A_n, A_m, A_data: Iterable[int], B_n, B_m, B_data: Iterable[int]):
+def task4(A_n, A_m, B_n, B_m, A_data: Iterable[int], B_data: Iterable[int]):
     a = Matrix.from_format(A_n, A_m, A_data, 3)
     b = Matrix.from_format(B_n, B_m, B_data, 3)
     res = op(a, b)
@@ -210,26 +210,57 @@ def task5(n, m, r, c, data: Iterable[int]):
 
 
 if __name__ == "__main__":
-
-
-    book = AnswerBook()
-    book.run('1.a', task1, 6, 4, rd('1a'))
-    book.run('1.b', task1, 100, 150, rd('1b'))
-
-    book.run('2.a', task2, 6, 4, rd('2a'))
-    book.run('2.b', task2, 100, 150, rd('2b'))
-    book.run('2.c', task2, 10**6, 10**6, rd('2c'))
-
-    book.run('3.a', task3, 4, 6, rd('3a'))
-    book.run('3.b', task3, 100, 150, rd('3b'))
-    book.run('3.c', task3, 10**6, 10**6, rd('3c'))
-
-    book.run('4.a', task4, 2, 4, rd('4a'), 4, 3, rd('4b'))
-    book.run('4.b', task4, 10**6, 10**6, rd('4c'), 10**6, 10**6, rd('4d'))
-    book.run('4.c', task4, 10**6, 10**6, rd('4e'), 10**6, 10**6, rd('4f'))
-
-    book.run('5.a', task5, 8, 6, 2, 3, rd('5a'))
-    book.run('5.b', task5, 10**6, 10**6, 10, 10, rd('5b'))
-    book.run('5.c', task5, 10**6, 10**6, 100, 100, rd('5c'))
-
-    book.print_json()
+    exam = Exam(reader=rd)
+    exam.add(
+        task1,
+        Series("1", {"a": (6, 4), "b": (100, 150)}, label_separator="."),
+    )
+    exam.add(
+        task2,
+        Series(
+            "2",
+            {"a": (6, 4), "b": (100, 150), "c": (10**6, 10**6)},
+            label_separator=".",
+        ),
+    )
+    exam.add(
+        task3,
+        Series(
+            "3",
+            {"a": (4, 6), "b": (100, 150), "c": (10**6, 10**6)},
+            label_separator=".",
+        ),
+    )
+    exam.add(
+        task4,
+        Case("4.a", 2, 4, 4, 3, files=("4a", "4b")),
+        Case(
+            "4.b",
+            10**6,
+            10**6,
+            10**6,
+            10**6,
+            files=("4c", "4d"),
+        ),
+        Case(
+            "4.c",
+            10**6,
+            10**6,
+            10**6,
+            10**6,
+            files=("4e", "4f"),
+        ),
+    )
+    exam.add(
+        task5,
+        Series(
+            "5",
+            {
+                "a": (8, 6, 2, 3),
+                "b": (10**6, 10**6, 10, 10),
+                "c": (10**6, 10**6, 100, 100),
+            },
+            label_separator=".",
+        ),
+    )
+    exam.execute()

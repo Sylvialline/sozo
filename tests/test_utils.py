@@ -5,9 +5,9 @@ from contextlib import redirect_stderr
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from utils import AnswerBook, BatchIO, DSU, read_data
+from utils import AnswerBook, BatchIO, Case, DSU, Exam, Input, Series, read_data
 
 
 class AnswerBookTests(unittest.TestCase):
@@ -146,6 +146,278 @@ class AnswerBookTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(output_path.read_text(encoding="utf-8")),
                 book.answers,
+            )
+
+    def test_pretty_json_keeps_only_simple_one_dimensional_lists_inline(self):
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+            book.answers = {
+                "case": {
+                    "vector": [1, 2, "三", True, None],
+                    "matrix": [[1, 2], [3, 4]],
+                    "records": [{"value": 1}, {"value": 2}],
+                }
+            }
+
+            output = book.dumps()
+
+            self.assertIn(
+                '"vector": [1, 2, "三", true, null]',
+                output,
+            )
+            self.assertIn(
+                '"matrix": [\n      [1, 2],\n      [3, 4]\n    ]',
+                output,
+            )
+            self.assertIn(
+                '"records": [\n      {\n        "value": 1\n      }',
+                output,
+            )
+            self.assertEqual(json.loads(output), book.answers)
+
+    def test_can_disable_inline_simple_lists(self):
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+            book.answers = {"case": {"vector": [1, 2]}}
+
+            output = book.dumps(inline_simple_lists=False)
+
+            self.assertIn('"vector": [\n', output)
+            self.assertEqual(json.loads(output), book.answers)
+
+
+class ExamTests(unittest.TestCase):
+    @staticmethod
+    def _make_exam(root: Path, reader, **kwargs):
+        caller_path = root / "caller.py"
+        namespace = {}
+        source = (
+            "from utils import Exam\n"
+            "\n"
+            "def make(reader, **kwargs):\n"
+            "    return Exam(reader, **kwargs)\n"
+        )
+        exec(compile(source, str(caller_path), "exec"), namespace)
+        return namespace["make"](reader, **kwargs)
+
+    def test_series_generates_labels_parameters_and_data_file_names(self):
+        with TemporaryDirectory() as temp_dir:
+            loaded = []
+
+            def reader(name):
+                loaded.append(name)
+                return f"data:{name}"
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
+            )
+            exam.add(
+                lambda size, left, right: {
+                    "value": (size, left, right),
+                },
+                Series(
+                    "3",
+                    {"a": (10,), "b": (20,)},
+                    input_count=2,
+                    label_separator=".",
+                ),
+            )
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(loaded, ["3a1", "3a2", "3b1", "3b2"])
+            self.assertEqual(list(book.answers), ["3.a", "3.b"])
+            self.assertEqual(
+                book.answers["3.a"]["value"],
+                (10, "data:3a1", "data:3a2"),
+            )
+
+    def test_case_appends_explicit_files_after_parameters(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name.upper(),
+                show_log=False,
+            )
+            exam.add(
+                lambda *args: {"args": args},
+                Case("4.a", 2, 4, files=("4a", "4b")),
+            )
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                book.answers["4.a"]["args"],
+                (2, 4, "4A", "4B"),
+            )
+
+    def test_resolves_explicit_input_recursively(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: f"data:{name}",
+                show_log=False,
+            )
+            exam.add(
+                lambda value: {"value": value},
+                Case("nested", {"items": [Input("x")]}),
+            )
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                book.answers["nested"]["value"],
+                {"items": ["data:x"]},
+            )
+
+    def test_rejects_duplicate_labels_before_reading_or_running(self):
+        with TemporaryDirectory() as temp_dir:
+            reader = Mock()
+            task = Mock()
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
+            )
+            exam.add(task, Case("same"), Case("same"))
+
+            with self.assertRaisesRegex(ValueError, "重复"):
+                exam.execute(output=None)
+
+            reader.assert_not_called()
+            task.assert_not_called()
+
+    def test_passes_case_timeout_and_uses_requested_output(self):
+        with TemporaryDirectory() as temp_dir:
+            book = Mock()
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name,
+                book=book,
+            )
+            task = Mock()
+            exam.add(task, Case("limited", files=("x",), timeout=0.5))
+
+            result = exam.execute(output="answers.json")
+
+            self.assertIs(result, book)
+            run_args, run_kwargs = book.run.call_args
+            self.assertEqual(run_args[0], "limited")
+            self.assertIs(run_args[2], task)
+            self.assertEqual(run_args[3], (Input("x"),))
+            self.assertIs(run_args[4], exam.reader)
+            self.assertEqual(run_kwargs, {"timeout": 0.5})
+            book.write_json.assert_called_once_with(
+                "answers.json",
+                indent=2,
+                inline_simple_lists=True,
+            )
+            book.print_json.assert_not_called()
+
+    def test_prints_answers_by_default(self):
+        with TemporaryDirectory() as temp_dir:
+            book = Mock()
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name,
+                book=book,
+            )
+            exam.add(Mock(), Case("case"))
+
+            exam.execute()
+
+            book.print_json.assert_called_once_with(
+                indent=2,
+                inline_simple_lists=True,
+            )
+            book.write_json.assert_not_called()
+
+    def test_true_output_uses_default_output_file(self):
+        with TemporaryDirectory() as temp_dir:
+            book = Mock()
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name,
+                book=book,
+            )
+            exam.add(Mock(), Case("case"))
+
+            exam.execute(output=True)
+
+            book.write_json.assert_called_once_with(
+                indent=2,
+                inline_simple_lists=True,
+            )
+            book.print_json.assert_not_called()
+
+    def test_execute_forwards_json_format_options(self):
+        with TemporaryDirectory() as temp_dir:
+            book = Mock()
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name,
+                book=book,
+            )
+            exam.add(Mock(), Case("case"))
+
+            exam.execute(indent=4, inline_simple_lists=False)
+
+            book.print_json.assert_called_once_with(
+                indent=4,
+                inline_simple_lists=False,
+            )
+
+    def test_reader_runs_inside_answer_book_timing(self):
+        with TemporaryDirectory() as temp_dir:
+            events = []
+
+            def reader(name):
+                events.append(f"read:{name}")
+                return name.upper()
+
+            def task(data):
+                events.append(f"task:{data}")
+                return {"value": data}
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
+            )
+            exam.add(task, Case("case", files=("input",)))
+
+            with patch(
+                "utils.answer_book.perf_counter",
+                side_effect=lambda: (
+                    events.append("clock")
+                    or float(events.count("clock"))
+                ),
+            ):
+                exam.execute(output=None)
+
+            self.assertEqual(
+                events,
+                ["clock", "read:input", "task:INPUT", "clock"],
+            )
+
+    def test_class_timeout_stops_a_case_through_exam(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                str,
+                timeout=0.05,
+                show_log=False,
+            )
+            exam.add(time.sleep, Case("slow", 1))
+
+            book = exam.execute(output=None)
+
+            self.assertTrue(book.answers["slow"]["timeout"])
+            self.assertEqual(
+                book.answers["slow"]["timeout_limit"],
+                0.05,
             )
 
 

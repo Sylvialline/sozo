@@ -120,7 +120,46 @@ def solve(data: str):
     └── data/          # 数据、标准答案和独立验证程序
 ```
 
-## `AnswerBook` 管理答案
+## `Exam` 编排任务，`AnswerBook` 管理答案
+
+现场代码优先使用 `Exam` 一次声明题组。规则相同的 `a/b/c` 小题用 `Series`，
+特殊文件组合用 `Case`：
+
+```python
+from utils import Case, Exam, Series, read_data
+
+
+def rd(name):
+    return map(int, read_data(name).split(","))
+
+exam = Exam(reader=rd, timeout=2)
+exam.add(
+    task1,
+    Series(
+        "1",
+        {"a": (6, 4), "b": (100, 150)},
+        label_separator=".",
+    ),
+)
+exam.add(
+    task4,
+    Case("4.a", 2, 4, 4, 3, files=("4a", "4b")),
+)
+exam.execute()
+```
+
+`Series("1")` 默认生成 `1a/1b/1c`，并分别读取 `1a/1b/1c`；如果每个
+case 需要两份数据，写成 `Series("3", input_count=2)`，它会读取
+`3a1/3a2`、`3b1/3b2`、`3c1/3c2`。映射中的 tuple 是放在数据前面的
+task 参数，因此推荐把 task 接口统一写成“普通参数在前，输入数据在后”。
+
+`Case(..., files=("4a", "4b"))` 会按顺序读取指定文件，并把结果追加到
+普通参数后。单项可传 `timeout=5` 覆盖 `Exam` 的类级超时，显式传
+`timeout=None` 可关闭该项限制。`execute()` 默认把答案打印到终端；
+`execute(output=True)` 写入调用代码同级的 `output.txt`，
+`execute(output="result.json")` 可指定文件名，`execute(output=None)` 则只返回
+内部的 `AnswerBook`。读取和 task 调用共同处于计时、错误日志及超时边界内；
+具体如何解析文件仍完全由 `solve.py` 的 `rd` 决定。
 
 `AnswerBook` 负责执行 task、记录答案和耗时，并可将结果打印到终端或写入文件：
 
@@ -142,6 +181,14 @@ book.write_json()  # 写入调用代码同级的 output.txt
 `timeout_limit` 的答案；task 及其参数和返回值必须支持 `pickle` 序列化。
 每项任务默认在 stderr 输出开始、完成、超时或失败日志，传入 `show_log=False`
 可以关闭。`write_json("result.json")` 可以指定其他文件名或路径。
+
+通过 `Exam` 启用超时时，`reader` 也在同一个受控子进程中执行，因此应把 `rd`
+写成模块顶层函数，以便 `pickle`；普通的现场写法自然满足这一点。
+
+JSON 默认保持对象结构的换行缩进，但 `[1, 2, 3]` 这类仅含简单值的一维数组
+会留在单行，矩阵和对象数组仍按层级展开。需要完全采用标准缩进时，可传
+`book.dumps(inline_simple_lists=False)`；`print_json()` 和 `write_json()`
+也接受同名参数。
 
 ## `read_data()` 快速读取数据
 

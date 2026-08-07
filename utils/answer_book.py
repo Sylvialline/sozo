@@ -16,6 +16,99 @@ from typing import Any
 _PROCESS_START_TIMEOUT = 30.0
 
 
+def _json_key(key: Any) -> str:
+    if isinstance(key, str):
+        value = key
+    elif key is None:
+        value = "null"
+    elif key is True:
+        value = "true"
+    elif key is False:
+        value = "false"
+    elif isinstance(key, (int, float)):
+        value = json.dumps(key)
+    else:
+        raise TypeError(
+            "JSON 对象的键必须是 str、int、float、bool 或 None"
+        )
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _is_json_scalar(value: Any) -> bool:
+    return value is None or isinstance(value, (str, int, float, bool))
+
+
+def _pretty_json(value: Any, indent: int) -> str:
+    width = max(indent, 0)
+    seen: set[int] = set()
+
+    def format_value(item: Any, level: int) -> str:
+        if _is_json_scalar(item):
+            return json.dumps(item, ensure_ascii=False)
+
+        if isinstance(item, Mapping):
+            marker = id(item)
+            if marker in seen:
+                raise ValueError("Circular reference detected")
+            if not item:
+                return "{}"
+
+            seen.add(marker)
+            try:
+                child_indent = " " * (width * (level + 1))
+                closing_indent = " " * (width * level)
+                members = [
+                    (
+                        f"{child_indent}{_json_key(key)}: "
+                        f"{format_value(child, level + 1)}"
+                    )
+                    for key, child in item.items()
+                ]
+                return (
+                    "{\n"
+                    + ",\n".join(members)
+                    + f"\n{closing_indent}}}"
+                )
+            finally:
+                seen.remove(marker)
+
+        if isinstance(item, (list, tuple)):
+            marker = id(item)
+            if marker in seen:
+                raise ValueError("Circular reference detected")
+            if not item:
+                return "[]"
+            if all(_is_json_scalar(child) for child in item):
+                return (
+                    "["
+                    + ", ".join(
+                        json.dumps(child, ensure_ascii=False)
+                        for child in item
+                    )
+                    + "]"
+                )
+
+            seen.add(marker)
+            try:
+                child_indent = " " * (width * (level + 1))
+                closing_indent = " " * (width * level)
+                members = [
+                    f"{child_indent}{format_value(child, level + 1)}"
+                    for child in item
+                ]
+                return (
+                    "[\n"
+                    + ",\n".join(members)
+                    + f"\n{closing_indent}]"
+                )
+            finally:
+                seen.remove(marker)
+
+        return json.dumps(item, ensure_ascii=False)
+
+    return format_value(value, 0)
+
+
 class _TaskTimedOut(TimeoutError):
     def __init__(self, label: str, limit: float, elapsed: float) -> None:
         self.limit = limit
@@ -85,11 +178,16 @@ class AnswerBook:
         timeout: float | None = None,
         *,
         show_log: bool = True,
+        base_dir: str | Path | None = None,
     ) -> None:
         self.timeout = self._normalize_timeout(timeout)
         self.show_log = show_log
         self.answers: dict[str, dict[str, Any]] = {}
-        self._base_dir = self._caller_directory()
+        self._base_dir = (
+            self._caller_directory()
+            if base_dir is None
+            else Path(base_dir).resolve()
+        )
 
     @staticmethod
     def _caller_directory() -> Path:
@@ -294,17 +392,35 @@ class AnswerBook:
     def as_dict(self) -> dict[str, dict[str, Any]]:
         return dict(self.answers)
 
-    def dumps(self, *, indent: int | None = 2) -> str:
+    def dumps(
+        self,
+        *,
+        indent: int | None = 2,
+        inline_simple_lists: bool = True,
+    ) -> str:
+        if indent is not None and inline_simple_lists:
+            return _pretty_json(self.answers, indent)
         return json.dumps(self.answers, ensure_ascii=False, indent=indent)
 
-    def print_json(self, *, indent: int | None = 2) -> None:
-        print(self.dumps(indent=indent))
+    def print_json(
+        self,
+        *,
+        indent: int | None = 2,
+        inline_simple_lists: bool = True,
+    ) -> None:
+        print(
+            self.dumps(
+                indent=indent,
+                inline_simple_lists=inline_simple_lists,
+            )
+        )
 
     def write_json(
         self,
         path: str | Path | None = None,
         *,
         indent: int | None = 2,
+        inline_simple_lists: bool = True,
     ) -> Path:
         """Write answers to a UTF-8 file and return its resolved path."""
         output_path = Path("output.txt") if path is None else Path(path)
@@ -314,7 +430,11 @@ class AnswerBook:
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(
-            self.dumps(indent=indent) + "\n",
+            self.dumps(
+                indent=indent,
+                inline_simple_lists=inline_simple_lists,
+            )
+            + "\n",
             encoding="utf-8",
         )
         return output_path
