@@ -1,0 +1,146 @@
+{
+  "data1a.txt": {
+    "records": 8,
+    "bytes": 69
+  },
+  "data1b.txt": {
+    "records": 250000,
+    "bytes": 2943633
+  },
+  "data1c.txt": {
+    "records": 1000000,
+    "bytes": 11774766
+  },
+  "data2a.txt": {
+    "records": 6,
+    "bytes": 30
+  },
+  "data2b.txt": {
+    "records": 250000,
+    "bytes": 1807502
+  },
+  "data2c.txt": {
+    "records": 1000000,
+    "bytes": 7779999
+  },
+  "data3a1.txt": {
+    "records": 5,
+    "bytes": 24
+  },
+  "data3a2.txt": {
+    "records": 5,
+    "bytes": 34
+  },
+  "data3b1.txt": {
+    "records": 250000,
+    "bytes": 1945228
+  },
+  "data3b2.txt": {
+    "records": 20000,
+    "bytes": 235153
+  },
+  "data3c1.txt": {
+    "records": 1000000,
+    "bytes": 7780955
+  },
+  "data3c2.txt": {
+    "records": 100000,
+    "bytes": 1175916
+  },
+  "data4a1.txt": {
+    "records": 7,
+    "bytes": 33
+  },
+  "data4a2.txt": {
+    "records": 5,
+    "bytes": 39
+  },
+  "data4b1.txt": {
+    "records": 250000,
+    "bytes": 1940339
+  },
+  "data4b2.txt": {
+    "records": 20000,
+    "bytes": 234910
+  },
+  "data4c1.txt": {
+    "records": 1000000,
+    "bytes": 7761411
+  },
+  "data4c2.txt": {
+    "records": 100000,
+    "bytes": 1174935
+  },
+  "data5a1.txt": {
+    "records": 5,
+    "bytes": 27
+  },
+  "data5a2.txt": {
+    "records": 5,
+    "bytes": 34
+  },
+  "data5b1.txt": {
+    "records": 250000,
+    "bytes": 1944959
+  },
+  "data5b2.txt": {
+    "records": 20000,
+    "bytes": 234890
+  },
+  "data5c1.txt": {
+    "records": 1000000,
+    "bytes": 7779886
+  },
+  "data5c2.txt": {
+    "records": 100000,
+    "bytes": 1174896
+  },
+  "data6a1.txt": {
+    "records": 6,
+    "bytes": 33
+  },
+  "data6a2.txt": {
+    "records": 5,
+    "bytes": 34
+  },
+  "data6b1.txt": {
+    "records": 250000,
+    "bytes": 1749997
+  },
+  "data6b2.txt": {
+    "records": 20000,
+    "bytes": 234015
+  },
+  "data6c1.txt": {
+    "records": 1000000,
+    "bytes": 7333331
+  },
+  "data6c2.txt": {
+    "records": 100000,
+    "bytes": 1174011
+  },
+  "data7a1.txt": {
+    "records": 4,
+    "bytes": 15
+  },
+  "data7a2.txt": {
+    "records": 3,
+    "bytes": 27
+  },
+  "data7b1.txt": {
+    "records": 250000,
+    "bytes": 1945507
+  },
+  "data7b2.txt": {
+    "records": 20000,
+    "bytes": 230758
+  },
+  "data7c1.txt": {
+    "records": 1000000,
+    "bytes": 7781777
+  },
+  "data7c2.txt": {
+    "records": 100000,
+    "bytes": 1087196
+  }
+}
