@@ -2,9 +2,15 @@
 from collections import defaultdict, Counter
 from itertools import batched
 import math
+from pathlib import Path
+import sys
 from typing import Iterable
-from utils import Case, Exam, Series, read_data
 import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from utils import Case, Exam, Series, read_data
 
 def rd(name: str) -> Iterable[int]:
     data = read_data(name)

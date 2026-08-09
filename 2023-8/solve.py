@@ -2,8 +2,15 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from itertools import batched
 from typing import Iterable
+from pathlib import Path
+import sys
+
+PATH = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PATH))
+
 from utils import Exam, read_data
-from copy import copy
+
+sys.setrecursionlimit(5000)
 
 def rd(name: str) -> Iterable[int]:
     return map(int, read_data(name).split(','))
@@ -93,10 +100,10 @@ class Program:
         return {var_str(k):(self.during.get(k, 'Undefined')) for k in vars}
 
     def vars_inconsistent(self):
-        return [var_str(k) for k,v in self.during.items() if is_in(v, self.inq.data.get(k))]
+        return [var_str(k) for k,v in self.during.items() if not is_in(v, self.inq.data.get(k))]
 
     def asns_inconsistent(self):
-        res = {a for a in self.asn.data if is_in(self.inq.data.get(a[1]), self.inq.data.get(a[0]))}
+        res = {a for a in self.asn.data if not is_in(self.inq.data.get(a[1]), self.inq.data.get(a[0]))}
         return list(map(asn_str, res))
 
 class Graph:
@@ -160,9 +167,9 @@ class Graph:
         for u, vs in self.data.items():
             in_d.update(vs)
 
-        print(in_d)
+        # print(in_d)
         s = [u for u in self.data if in_d[u] == 0]
-        print(s)
+        # print(s)
         res = []
 
         while s:
@@ -202,10 +209,10 @@ def define(inq: Ranges, asn: Assignments):
                 if u not in inq.data:
                     defs[u] = r
 
-    print(g.data)
-    print(own, belong)
-    print(cg.data)
-    print(list(cg.top_sort()))
+    # print(g.data)
+    # print(own, belong)
+    # print(cg.data)
+    # print(list(cg.top_sort()))
         
     for w in cg.top_sort():
         if w not in rg:
@@ -275,5 +282,5 @@ def task7(data1, data2):
     }
 
 if __name__ == "__main__":
-    exam.execute()
+    exam.execute(output=True)
  
