@@ -426,7 +426,7 @@ class AnswerBook:
         inline_simple_lists: bool = True,
     ) -> Path:
         """Write answers to a UTF-8 file and return its resolved path."""
-        output_path = Path("output.txt") if path is None else Path(path)
+        output_path = Path("answer.json") if path is None else Path(path)
         if not output_path.is_absolute():
             output_path = self._base_dir / output_path
         output_path = output_path.resolve()

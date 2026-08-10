@@ -237,6 +237,41 @@ def define(inq: Ranges, asn: Assignments):
 
     return {var_str(k):v for k,v in defs.items()}
 
+def define_using_graph_utils(inq: Ranges, asn: Assignments):
+    from utils import Graph
+    g = Graph.from_edges(((r,l) for l,r in asn.data))
+    c = g.condense()
+    result = {}
+    dp = {}
+    for w in c.graph.topological_sort(reverse=True):
+        inter = None
+        for u in c.members[w]:
+            if u in inq.data:
+                if inter is None:
+                    inter = inq.data[u]
+                elif inter != inq.data[u]:
+                    return None
+
+        if inter is None:
+            inter = (0, 999)
+            for m in c.graph.neighbors(w):
+                inter = intersection(inter, dp[m])
+                if inter[0] > inter[1]:
+                    return None
+            dp[w] = inter
+            for u in c.members[w]:
+                result[u] = inter
+        else:
+            for m in c.graph.neighbors(w):
+                if not is_in(inter, dp[m]):
+                    return None
+            dp[w] = inter
+            for u in c.members[w]:
+                if u not in inq.data:
+                    result[u] = inter
+
+    return {var_str(k):v for k,v in sorted(result.items())}
+
         
 
 @exam.task
@@ -276,7 +311,8 @@ def task6(data1, data2):
 
 @exam.task
 def task7(data1, data2):
-    res = define(asn=Assignments(data1), inq=Ranges(data2))
+    # res = define(asn=Assignments(data1), inq=Ranges(data2))
+    res = define_using_graph_utils(asn=Assignments(data1), inq=Ranges(data2))
     return {
         'definitions': res
     }

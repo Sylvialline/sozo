@@ -179,7 +179,7 @@ def task3(data1, data2):
 `Case(..., files=("4a", "4b"))` 会按顺序读取指定文件，并把结果追加到
 普通参数后。单项可传 `timeout=5` 覆盖 `Exam` 的类级超时，显式传
 `timeout=None` 可关闭该项限制。`execute()` 默认把答案打印到终端；
-`execute(output=True)` 写入调用代码同级的 `output.txt`，
+`execute(output=True)` 写入调用代码同级的 `answer.json`，
 `execute(output="result.json")` 可指定文件名，`execute(output=None)` 则只返回
 内部的 `AnswerBook`。读取和 task 调用共同处于计时、错误日志及超时边界内；
 具体如何解析文件仍完全由 `solve.py` 的 `rd` 决定。
@@ -195,7 +195,7 @@ book.run("1.b", task1, 100, 150, rd("1b"), timeout=5)
 book.run("1.c", task1, 10, 10, rd("1c"), timeout=None)
 
 book.print_json()  # 打印到终端
-book.write_json()  # 写入调用代码同级的 output.txt
+book.write_json()  # 写入调用代码同级的 answer.json
 ```
 
 成功任务的答案固定使用 `{"result": task返回值, "time": 秒数}` 结构；即使 task
@@ -231,6 +231,36 @@ data = read_data("3a")
 - 多个匹配时返回 `{文件名: 文件内容}` 字典。
 
 匹配区分大小写，文件按文件名排序，并使用 UTF-8 解码。
+
+## `Graph`：显式节点集、缩点与拓扑排序
+
+`Graph` 的核心不变量是：`g.adj` 的 key 集合就是完整节点集。无论节点是否有
+出边，都必须作为 key 存在；`g[u]` 和 `g.neighbors(u)` 只查询，缺失节点会抛出
+`KeyError`，绝不会因查询而创建节点。`add_edge(u, v)` 会显式补齐两个端点。
+
+```python
+from utils import Graph
+
+g = Graph.from_edges(
+    [("a", "b"), ("b", "a"), ("b", "c")],
+)
+
+parts = g.condensation()
+print(parts.members)          # 每个 SCC 的原节点
+print(parts.component_of["a"])
+
+# 结果也可直接解包；类型检查器可识别 cg 是 Graph。
+cg, members, component_of = g.condense()
+
+# 默认保证每条 u -> v 都有 u 在 v 前；reverse=True 时则 v 在 u 前。
+for component in parts.graph.topological_sort(reverse=True):
+    for node in parts.members[component]:
+        ...
+```
+
+`condensation()` 返回的 DAG 节点为 `0..k-1`，`members[i]` 和
+`component_of[u]` 提供两种方向的映射。跨 SCC 的平行边会保留；加权图也保留这些边的
+权重。原图有环时，直接对它调用 `topological_sort()` 会明确抛出 `ValueError`。
 
 ## `utils/` 收录标准
 

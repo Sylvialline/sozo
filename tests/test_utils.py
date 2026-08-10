@@ -7,7 +7,17 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import Mock, patch
 
-from utils import AnswerBook, BatchIO, Case, DSU, Exam, Input, Series, read_data
+from utils import (
+    AnswerBook,
+    BatchIO,
+    Case,
+    DSU,
+    Exam,
+    Graph,
+    Input,
+    Series,
+    read_data,
+)
 
 
 class AnswerBookTests(unittest.TestCase):
@@ -151,7 +161,7 @@ class AnswerBookTests(unittest.TestCase):
 
             output_path = book.write_json()
 
-            self.assertEqual(output_path, (root / "output.txt").resolve())
+            self.assertEqual(output_path, (root / "answer.json").resolve())
             self.assertEqual(
                 json.loads(output_path.read_text(encoding="utf-8")),
                 book.answers,
@@ -574,6 +584,129 @@ class BatchIOAnswerTests(unittest.TestCase):
     def test_rejects_non_positive_answer_index(self):
         with self.assertRaises(ValueError):
             BatchIO(".", answer_index=0)
+
+
+class GraphTests(unittest.TestCase):
+    def test_node_set_is_complete_and_queries_do_not_create_nodes(self):
+        graph = Graph({"a": ["b"]})
+
+        self.assertEqual(list(graph), ["a", "b"])
+        self.assertEqual(graph["b"], [])
+        self.assertEqual(graph.indegrees(), {"a": 0, "b": 1})
+
+        before = list(graph)
+        with self.assertRaises(KeyError):
+            graph.neighbors("missing")
+        with self.assertRaises(KeyError):
+            graph["missing"]
+        self.assertEqual(list(graph), before)
+
+        graph.add_edge("b", "c")
+        self.assertEqual(list(graph), ["a", "b", "c"])
+        self.assertEqual(graph["c"], [])
+
+    def test_weighted_edges_reverse_and_degrees(self):
+        graph = Graph.from_edges(
+            [("a", "b", 3), ("a", "c", 5)],
+            weighted=True,
+        )
+
+        self.assertEqual(
+            list(graph.edges()),
+            [("a", "b", 3), ("a", "c", 5)],
+        )
+        self.assertEqual(graph.outdegrees(), {"a": 2, "b": 0, "c": 0})
+        self.assertEqual(graph.indegrees(), {"a": 0, "b": 1, "c": 1})
+        self.assertEqual(
+            list(graph.reverse().edges()),
+            [("b", "a", 3), ("c", "a", 5)],
+        )
+
+    def test_topological_sort_and_cycle_detection(self):
+        graph = Graph.from_edges(
+            [
+                ("parse", "build"),
+                ("parse", "test"),
+                ("build", "test"),
+            ]
+        )
+
+        order = graph.topological_sort()
+        positions = {node: index for index, node in enumerate(order)}
+        self.assertLess(positions["parse"], positions["build"])
+        self.assertLess(positions["build"], positions["test"])
+        self.assertEqual(graph.topological_sort(reverse=True), list(reversed(order)))
+
+        cycle = Graph.from_edges([(1, 2), (2, 3), (3, 1)])
+        with self.assertRaisesRegex(ValueError, "包含环"):
+            cycle.topological_sort()
+
+    def test_condensation_contracts_sccs_and_preserves_parallel_edges(self):
+        graph = Graph.from_edges(
+            [
+                ("a", "b"),
+                ("b", "a"),
+                ("a", "c"),
+                ("b", "c"),
+                ("c", "d"),
+                ("d", "c"),
+                ("d", "e"),
+            ]
+        )
+
+        result = graph.condensation()
+        condensed_graph, members, component_of = result
+        self.assertIs(condensed_graph, result.graph)
+        self.assertEqual(members, result.members)
+        self.assertEqual(component_of, result.component_of)
+        first = result.component_of["a"]
+        middle = result.component_of["c"]
+        last = result.component_of["e"]
+
+        self.assertEqual(first, result.component_of["b"])
+        self.assertEqual(middle, result.component_of["d"])
+        self.assertNotEqual(first, middle)
+        self.assertNotEqual(middle, last)
+        self.assertEqual(
+            {frozenset(component) for component in result.members},
+            {frozenset({"a", "b"}), frozenset({"c", "d"}), frozenset({"e"})},
+        )
+        self.assertEqual(result.components, result.members)
+        self.assertEqual(result.graph.edge_count(), 3)
+        self.assertEqual(
+            set(result.graph.edges()),
+            {(first, middle), (middle, last)},
+        )
+
+        order = result.graph.topological_sort()
+        positions = {component: index for index, component in enumerate(order)}
+        self.assertLess(positions[first], positions[middle])
+        self.assertLess(positions[middle], positions[last])
+        self.assertEqual(
+            result.graph.topological_sort(reverse=True),
+            list(reversed(order)),
+        )
+
+    def test_weighted_condensation_preserves_cross_component_weight(self):
+        graph = Graph.from_edges(
+            [("a", "b", 1), ("b", "a", 2), ("b", "c", 9)],
+            weighted=True,
+        )
+
+        result = graph.condensation()
+        source = result.component_of["a"]
+        target = result.component_of["c"]
+
+        self.assertTrue(result.graph.weighted)
+        self.assertEqual(list(result.graph.edges()), [(source, target, 9)])
+
+    def test_scc_uses_an_iterative_dfs(self):
+        graph = Graph.from_edges((i, i + 1) for i in range(3_000))
+
+        components = graph.strongly_connected_components()
+
+        self.assertEqual(len(components), 3_001)
+        self.assertEqual({node for component in components for node in component}, set(graph))
 
 
 class DSUTests(unittest.TestCase):
