@@ -61,9 +61,15 @@ python run.py 2025-8 --pattern 'case\d+\.in'
 
 ## Python 考场速查库
 
-[`samples/`](samples/) 提供面向 C++17/STL 使用者的 Python 3 离线示例库，覆盖语法、
-标准库、文件处理、解析、容器、算法、矩阵、面向对象、调试、考试批处理和九个完整小
-任务。按场景查找文件时请查看 [`samples/README.md`](samples/README.md) 的完整索引。
+现场文档分成两个入口：
+
+- [`utils/QUICK_REFERENCE.md`](utils/QUICK_REFERENCE.md)：从 `AnswerBook`、`Exam`、
+  `Case`、`Series` 到 `@exam.task` 的答案执行与编排速查；
+- [`samples/README.md`](samples/README.md)：面向 C++17/STL 使用者的 Python 3 离线
+  示例索引，覆盖语法、标准库、解析、容器、算法、矩阵、调试和完整小任务。
+
+写题时优先查 `utils` 速查手册来选择运行范式；需要回忆 Python 写法或算法模板时再查
+`samples/`。
 
 ```powershell
 python samples/00_quick_reference/cpp_to_python_stl.py
@@ -112,7 +118,7 @@ def solve(data: str):
 ├── README.md          # 仓库理念和现场用法
 ├── run.py             # 稳定的批量运行入口
 ├── samples/           # Python 考场速查、完整示例与批量自检
-├── utils/             # 已验证的通用模块
+├── utils/             # 已验证的通用模块及 QUICK_REFERENCE.md
 └── YYYY-MM/
     ├── solve.py       # 仅仓库所有者编辑
     ├── notes.md       # 复盘、复杂度、陷阱和改进建议
@@ -121,6 +127,9 @@ def solve(data: str):
 ```
 
 ## `Exam` 编排任务，`AnswerBook` 管理答案
+
+完整接口、选型表和常见场景可直接查阅
+[`utils/QUICK_REFERENCE.md`](utils/QUICK_REFERENCE.md)；本节保留整体用法概览。
 
 现场代码优先使用 `Exam` 一次声明题组。规则相同的 `a/b/c` 小题用 `Series`，
 特殊文件组合用 `Case`：
@@ -184,6 +193,10 @@ def task3(data1, data2):
 内部的 `AnswerBook`。读取和 task 调用共同处于计时、错误日志及超时边界内；
 具体如何解析文件仍完全由 `solve.py` 的 `rd` 决定。
 
+`Exam(reader=read_data)` 可以直接使用：`Exam` 会把创建位置所在的题目目录绑定给
+`read_data`，经过内部调用层或 Windows 超时子进程时也不会误读 `utils/data/`。
+`Case(..., files=("",))` 会把 `data/` 下全部普通文件作为一个读取结果传给 task。
+
 `AnswerBook` 负责执行 task、记录答案和耗时，并可将结果打印到终端或写入文件：
 
 ```python
@@ -224,13 +237,16 @@ JSON 默认保持对象结构的换行缩进，但 `[1, 2, 3]` 这类仅含简�
 from utils import read_data
 
 data = read_data("3a")
+all_data = read_data("")  # 读取 data/ 下全部普通文件
 ```
 
 - 没有匹配时返回 `None`；
 - 恰好一个匹配时直接返回文件内容 `str`；
 - 多个匹配时返回 `{文件名: 文件内容}` 字典。
 
-匹配区分大小写，文件按文件名排序，并使用 UTF-8 解码。
+空字符串按包含语义匹配所有文件。匹配是区分大小写的字面包含而不是正则；文件按文件名
+排序，并使用 UTF-8 解码。复杂正则筛选可在 `read_data("")` 返回的字典上自行完成，
+无需让日常文件名承担正则特殊字符风险。
 
 ## `Graph`：显式节点集、缩点与拓扑排序
 

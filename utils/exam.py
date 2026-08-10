@@ -3,10 +3,12 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from typing import Any
 
 from .answer_book import AnswerBook
+from .data_io import read_data
 
 
 class _UseDefaultTimeout:
@@ -28,8 +30,8 @@ class Input:
     name: str
 
     def __post_init__(self) -> None:
-        if not isinstance(self.name, str) or not self.name:
-            raise ValueError("Input.name 必须是非空字符串")
+        if not isinstance(self.name, str):
+            raise TypeError("Input.name 必须是字符串")
 
 
 def _resolve_input(value: Any, reader: Callable[[str], Any]) -> Any:
@@ -80,8 +82,8 @@ class Case:
             raise ValueError("Case.label 必须是非空字符串")
         if not isinstance(files, tuple):
             raise TypeError("files 必须是文件名 tuple")
-        if any(not isinstance(name, str) or not name for name in files):
-            raise ValueError("files 中的每个文件名必须是非空字符串")
+        if any(not isinstance(name, str) for name in files):
+            raise TypeError("files 中的每个匹配串必须是字符串")
         object.__setattr__(self, "label", label)
         object.__setattr__(
             self,
@@ -173,14 +175,19 @@ class Exam:
         if not callable(reader):
             raise TypeError("reader 必须是可调用对象")
 
-        self.reader = reader
+        base_dir = self._caller_directory()
+        self.reader = (
+            partial(read_data, base_dir=base_dir)
+            if reader is read_data
+            else reader
+        )
         self.book = (
             book
             if book is not None
             else AnswerBook(
                 timeout=timeout,
                 show_log=show_log,
-                base_dir=self._caller_directory(),
+                base_dir=base_dir,
             )
         )
         self._entries: list[tuple[Callable[..., Any], Case]] = []

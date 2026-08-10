@@ -20,6 +20,10 @@ from utils import (
 )
 
 
+def _identity_task(value):
+    return value
+
+
 class AnswerBookTests(unittest.TestCase):
     @staticmethod
     def _make_book(root: Path, timeout=None, show_log=False):
@@ -326,6 +330,43 @@ class ExamTests(unittest.TestCase):
                 (2, 4, "4A", "4B"),
             )
 
+    def test_direct_read_data_reader_uses_exam_caller_and_accepts_empty_match(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "b.txt").write_text("B", encoding="utf-8")
+            (data_dir / "a.txt").write_text("A", encoding="utf-8")
+
+            exam = self._make_exam(root, read_data, show_log=False)
+            exam.add(lambda data: data, Case("all", files=("",)))
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                book.answers["all"]["result"],
+                {"a.txt": "A", "b.txt": "B"},
+            )
+
+    def test_direct_read_data_reader_keeps_exam_directory_in_timeout_process(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "input.txt").write_text("input", encoding="utf-8")
+
+            exam = self._make_exam(
+                root,
+                read_data,
+                timeout=1,
+                show_log=False,
+            )
+            exam.add(_identity_task, Case("input", files=("input",)))
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(book.answers["input"]["result"], "input")
+
     def test_resolves_explicit_input_recursively(self):
         with TemporaryDirectory() as temp_dir:
             exam = self._make_exam(
@@ -537,6 +578,31 @@ class ReadDataTests(unittest.TestCase):
                 load("part"),
                 {"part-a.txt": "A", "part-b.txt": "B"},
             )
+
+    def test_empty_name_returns_all_regular_files(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "b.txt").write_text("B", encoding="utf-8")
+            (data_dir / "a.txt").write_text("A", encoding="utf-8")
+            (data_dir / "nested").mkdir()
+
+            load = self._make_caller(root)
+
+            self.assertEqual(
+                load(""),
+                {"a.txt": "A", "b.txt": "B"},
+            )
+
+    def test_explicit_base_directory_works_without_caller_stack(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "input.txt").write_text("input", encoding="utf-8")
+
+            self.assertEqual(read_data("input", base_dir=root), "input")
 
     def test_returns_none_for_no_match_or_missing_data_directory(self):
         with TemporaryDirectory() as temp_dir:
