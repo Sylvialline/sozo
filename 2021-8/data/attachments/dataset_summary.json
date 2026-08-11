@@ -1,0 +1,93 @@
+{
+  "provenance": "Deterministic synthetic practice data; not the original exam USB data.",
+  "statement_limits": "The statement gives no explicit length or numeric upper bound. All generated values are non-negative integers, every file has at least 10 distinct values, infections.txt has at least 7 days, and infections2.txt has at least 31 days.",
+  "input_files": [
+    "baseline.txt",
+    "echo_long_a.txt",
+    "echo_long_b.txt",
+    "echo_short.txt",
+    "infections.txt",
+    "infections2.txt",
+    "plateau.txt",
+    "sawtooth.txt"
+  ],
+  "file_statistics": {
+    "baseline.txt": {
+      "days": 37,
+      "minimum": 1000,
+      "maximum": 1828,
+      "distinct_values": 37,
+      "tenth_largest_distinct": 1642
+    },
+    "echo_long_a.txt": {
+      "days": 57,
+      "minimum": 900,
+      "maximum": 13172,
+      "distinct_values": 57,
+      "tenth_largest_distinct": 10575
+    },
+    "echo_long_b.txt": {
+      "days": 61,
+      "minimum": 5000,
+      "maximum": 18636,
+      "distinct_values": 61,
+      "tenth_largest_distinct": 18159
+    },
+    "echo_short.txt": {
+      "days": 45,
+      "minimum": 5000,
+      "maximum": 11066,
+      "distinct_values": 45,
+      "tenth_largest_distinct": 9795
+    },
+    "infections.txt": {
+      "days": 96,
+      "minimum": 0,
+      "maximum": 5000,
+      "distinct_values": 84,
+      "tenth_largest_distinct": 4498
+    },
+    "infections2.txt": {
+      "days": 98,
+      "minimum": 0,
+      "maximum": 32767,
+      "distinct_values": 16,
+      "tenth_largest_distinct": 63
+    },
+    "plateau.txt": {
+      "days": 48,
+      "minimum": 700,
+      "maximum": 2215,
+      "distinct_values": 16,
+      "tenth_largest_distinct": 1306
+    },
+    "sawtooth.txt": {
+      "days": 66,
+      "minimum": 200,
+      "maximum": 2075,
+      "distinct_values": 66,
+      "tenth_largest_distinct": 1815
+    }
+  },
+  "coverage": {
+    "problem_1_1": "duplicates, zero, more than 10 distinct values",
+    "problem_1_2": "different file lengths and per-file distinct-value counts",
+    "problem_1_3": "positive, negative, and zero increments with changing digit widths",
+    "problem_1_4": {
+      "maximum_sum": 5000,
+      "tied_shortest_periods": 2
+    },
+    "problem_2_1": "first/middle/last seven-day windows and exact rational rounding",
+    "problem_2_2": {
+      "different_lengths": true,
+      "interior_exact_matches": true,
+      "tied_best_pairs": 2
+    },
+    "problem_2_3": "exact integer sufficient statistics and a nontrivial rational linear fit",
+    "problem_2_4": {
+      "window_length": 31,
+      "tied_fastest_windows": 2,
+      "contains_zero": true
+    }
+  }
+}
