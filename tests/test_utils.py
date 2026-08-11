@@ -24,6 +24,18 @@ def _identity_task(value):
     return value
 
 
+def _parse_csv(data):
+    return list(map(int, data.split(",")))
+
+
+def _parse_colon(data):
+    return list(map(int, data.split(":")))
+
+
+def _uppercase_parser(data):
+    return data.upper()
+
+
 class AnswerBookTests(unittest.TestCase):
     @staticmethod
     def _make_book(root: Path, timeout=None, show_log=False):
@@ -360,12 +372,63 @@ class ExamTests(unittest.TestCase):
                 read_data,
                 timeout=1,
                 show_log=False,
+                parser=_uppercase_parser,
             )
             exam.add(_identity_task, Case("input", files=("input",)))
 
             book = exam.execute(output=None)
 
-            self.assertEqual(book.answers["input"]["result"], "input")
+            self.assertEqual(book.answers["input"]["result"], "INPUT")
+
+    def test_global_parser_recursively_parses_reader_mappings(self):
+        with TemporaryDirectory() as temp_dir:
+            def reader(name):
+                return {
+                    "a.txt": "1,2",
+                    "nested": {"b.txt": "3,4"},
+                }
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                parser=_parse_csv,
+                show_log=False,
+            )
+            exam.add(_identity_task, Case("parsed", files=("all",)))
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                book.answers["parsed"]["result"],
+                {
+                    "a.txt": [1, 2],
+                    "nested": {"b.txt": [3, 4]},
+                },
+            )
+
+    def test_case_and_series_parser_can_override_or_disable_global_parser(self):
+        with TemporaryDirectory() as temp_dir:
+            def reader(name):
+                return "1:2" if name == "colon" else "3,4"
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                parser=_parse_csv,
+                show_log=False,
+            )
+            exam.add(
+                _identity_task,
+                Case("colon", files=("colon",), parser=_parse_colon),
+                Case("raw", files=("colon",), parser=None),
+                Series("csv", "x", parser=_parse_csv),
+            )
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(book.answers["colon"]["result"], [1, 2])
+            self.assertEqual(book.answers["raw"]["result"], "1:2")
+            self.assertEqual(book.answers["csvx"]["result"], [3, 4])
 
     def test_resolves_explicit_input_recursively(self):
         with TemporaryDirectory() as temp_dir:
@@ -422,6 +485,7 @@ class ExamTests(unittest.TestCase):
             self.assertIs(run_args[2], task)
             self.assertEqual(run_args[3], (Input("x"),))
             self.assertIs(run_args[4], exam.reader)
+            self.assertIsNone(run_args[5])
             self.assertEqual(run_kwargs, {"timeout": 0.5})
             book.write_json.assert_called_once_with(
                 "answers.json",
@@ -483,13 +547,17 @@ class ExamTests(unittest.TestCase):
                 inline_simple_lists=False,
             )
 
-    def test_reader_runs_inside_answer_book_timing(self):
+    def test_reader_and_parser_run_inside_answer_book_timing(self):
         with TemporaryDirectory() as temp_dir:
             events = []
 
             def reader(name):
                 events.append(f"read:{name}")
                 return name.upper()
+
+            def parser(data):
+                events.append(f"parse:{data}")
+                return data.lower()
 
             def task(data):
                 events.append(f"task:{data}")
@@ -498,6 +566,7 @@ class ExamTests(unittest.TestCase):
             exam = self._make_exam(
                 Path(temp_dir),
                 reader,
+                parser=parser,
                 show_log=False,
             )
             exam.add(task, Case("case", files=("input",)))
@@ -513,7 +582,7 @@ class ExamTests(unittest.TestCase):
 
             self.assertEqual(
                 events,
-                ["clock", "read:input", "task:INPUT", "clock"],
+                ["clock", "read:input", "parse:INPUT", "task:input", "clock"],
             )
 
     def test_class_timeout_stops_a_case_through_exam(self):

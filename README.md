@@ -138,10 +138,10 @@ def solve(data: str):
 from utils import Case, Exam, Series, read_data
 
 
-def rd(name):
-    return map(int, read_data(name).split(","))
+def parse(data: str) -> list[int]:
+    return list(map(int, data.split(",")))
 
-exam = Exam(reader=rd, timeout=2)
+exam = Exam(reader=read_data, parser=parse, timeout=2)
 
 
 @exam.task(
@@ -190,8 +190,11 @@ def task3(data1, data2):
 `timeout=None` 可关闭该项限制。`execute()` 默认把答案打印到终端；
 `execute(output=True)` 写入调用代码同级的 `answer.json`，
 `execute(output="result.json")` 可指定文件名，`execute(output=None)` 则只返回
-内部的 `AnswerBook`。读取和 task 调用共同处于计时、错误日志及超时边界内；
-具体如何解析文件仍完全由 `solve.py` 的 `rd` 决定。
+内部的 `AnswerBook`。读取、解析和 task 调用共同处于计时、错误日志及超时边界内。
+
+`Exam(parser=parse)` 设置全局解析器；reader 返回字典时，会保持键和结构并递归解析叶子
+文本。`Case(..., parser=other_parse)` 或 `Series(..., parser=other_parse)` 可以覆盖全局
+解析器，显式传 `parser=None` 则关闭该 case 或题组的解析。
 
 `Exam(reader=read_data)` 可以直接使用：`Exam` 会把创建位置所在的题目目录绑定给
 `read_data`，经过内部调用层或 Windows 超时子进程时也不会误读 `utils/data/`。
@@ -220,8 +223,8 @@ book.write_json()  # 写入调用代码同级的 answer.json
 每项任务默认在 stderr 输出开始、完成、超时或失败日志，传入 `show_log=False`
 可以关闭。`write_json("result.json")` 可以指定其他文件名或路径。
 
-通过 `Exam` 启用超时时，`reader` 也在同一个受控子进程中执行，因此应把 `rd`
-写成模块顶层函数，以便 `pickle`；普通的现场写法自然满足这一点。
+通过 `Exam` 启用超时时，`reader` 和 `parser` 也在同一个受控子进程中执行，因此应把
+自定义函数写在模块顶层，以便 `pickle`；普通的现场写法自然满足这一点。
 
 JSON 默认保持对象结构的换行缩进，但 `[1, 2, 3]` 这类仅含简单值的一维数组
 会留在单行，矩阵和对象数组仍按层级展开。需要完全采用标准缩进时，可传

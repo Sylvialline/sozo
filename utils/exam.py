@@ -19,8 +19,23 @@ class _PrintToStdout:
     pass
 
 
+class _UseDefaultParser:
+    pass
+
+
 _USE_DEFAULT_TIMEOUT = _UseDefaultTimeout()
 _PRINT_TO_STDOUT = _PrintToStdout()
+_USE_DEFAULT_PARSER = _UseDefaultParser()
+
+
+Parser = Callable[[str], Any]
+
+
+def _validate_parser(
+    parser: Parser | None | _UseDefaultParser,
+) -> None:
+    if parser is not _USE_DEFAULT_PARSER and parser is not None and not callable(parser):
+        raise TypeError("parser 必须是可调用对象或 None")
 
 
 @dataclass(frozen=True)
@@ -34,16 +49,30 @@ class Input:
             raise TypeError("Input.name 必须是字符串")
 
 
-def _resolve_input(value: Any, reader: Callable[[str], Any]) -> Any:
+def _parse_reader_output(value: Any, parser: Parser) -> Any:
+    if isinstance(value, Mapping):
+        return {
+            key: _parse_reader_output(item, parser)
+            for key, item in value.items()
+        }
+    return parser(value)
+
+
+def _resolve_input(
+    value: Any,
+    reader: Callable[[str], Any],
+    parser: Parser | None,
+) -> Any:
     if isinstance(value, Input):
-        return reader(value.name)
+        data = reader(value.name)
+        return data if parser is None else _parse_reader_output(data, parser)
     if isinstance(value, tuple):
-        return tuple(_resolve_input(item, reader) for item in value)
+        return tuple(_resolve_input(item, reader, parser) for item in value)
     if isinstance(value, list):
-        return [_resolve_input(item, reader) for item in value]
+        return [_resolve_input(item, reader, parser) for item in value]
     if isinstance(value, dict):
         return {
-            key: _resolve_input(item, reader)
+            key: _resolve_input(item, reader, parser)
             for key, item in value.items()
         }
     return value
@@ -53,9 +82,10 @@ def _execute_case(
     task: Callable[..., Any],
     args: tuple[Any, ...],
     reader: Callable[[str], Any],
+    parser: Parser | None,
 ) -> Any:
     resolved_args = tuple(
-        _resolve_input(arg, reader)
+        _resolve_input(arg, reader, parser)
         for arg in args
     )
     return task(*resolved_args)
@@ -69,6 +99,7 @@ class Case:
     args: tuple[Any, ...]
     files: tuple[str, ...]
     timeout: float | None | _UseDefaultTimeout
+    parser: Parser | None | _UseDefaultParser
 
     def __init__(
         self,
@@ -77,6 +108,7 @@ class Case:
         *args: Any,
         files: tuple[str, ...] = (),
         timeout: float | None | _UseDefaultTimeout = _USE_DEFAULT_TIMEOUT,
+        parser: Parser | None | _UseDefaultParser = _USE_DEFAULT_PARSER,
     ) -> None:
         if not isinstance(label, str) or not label:
             raise ValueError("Case.label 必须是非空字符串")
@@ -84,6 +116,7 @@ class Case:
             raise TypeError("files 必须是文件名 tuple")
         if any(not isinstance(name, str) for name in files):
             raise TypeError("files 中的每个匹配串必须是字符串")
+        _validate_parser(parser)
         object.__setattr__(self, "label", label)
         object.__setattr__(
             self,
@@ -92,6 +125,7 @@ class Case:
         )
         object.__setattr__(self, "files", files)
         object.__setattr__(self, "timeout", timeout)
+        object.__setattr__(self, "parser", parser)
 
 
 class Series:
@@ -105,6 +139,7 @@ class Series:
         input_count: int = 1,
         label_separator: str = "",
         timeout: float | None | _UseDefaultTimeout = _USE_DEFAULT_TIMEOUT,
+        parser: Parser | None | _UseDefaultParser = _USE_DEFAULT_PARSER,
     ) -> None:
         if not isinstance(prefix, str) or not prefix:
             raise ValueError("Series.prefix 必须是非空字符串")
@@ -114,6 +149,7 @@ class Series:
             or input_count < 0
         ):
             raise ValueError("input_count 必须是非负整数")
+        _validate_parser(parser)
 
         if isinstance(variants, str):
             items = [(variant, ()) for variant in variants]
@@ -139,6 +175,7 @@ class Series:
         self.input_count = input_count
         self.label_separator = label_separator
         self.timeout = timeout
+        self.parser = parser
 
     def __iter__(self) -> Iterator[Case]:
         for variant, params in self.items:
@@ -158,6 +195,7 @@ class Series:
                 *params,
                 files=files,
                 timeout=self.timeout,
+                parser=self.parser,
             )
 
 
@@ -171,9 +209,11 @@ class Exam:
         timeout: float | None = None,
         show_log: bool = True,
         book: AnswerBook | None = None,
+        parser: Parser | None = None,
     ) -> None:
         if not callable(reader):
             raise TypeError("reader 必须是可调用对象")
+        _validate_parser(parser)
 
         base_dir = self._caller_directory()
         self.reader = (
@@ -181,6 +221,7 @@ class Exam:
             if reader is read_data
             else reader
         )
+        self.parser = parser
         self.book = (
             book
             if book is not None
@@ -315,6 +356,11 @@ class Exam:
         self._executed = True
 
         for task, case in self._entries:
+            parser = (
+                self.parser
+                if case.parser is _USE_DEFAULT_PARSER
+                else case.parser
+            )
             if case.timeout is _USE_DEFAULT_TIMEOUT:
                 self.book.run(
                     case.label,
@@ -322,6 +368,7 @@ class Exam:
                     task,
                     case.args,
                     self.reader,
+                    parser,
                 )
             else:
                 self.book.run(
@@ -330,6 +377,7 @@ class Exam:
                     task,
                     case.args,
                     self.reader,
+                    parser,
                     timeout=case.timeout,
                 )
 

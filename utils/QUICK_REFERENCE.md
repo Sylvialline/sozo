@@ -58,8 +58,8 @@ book.run("1.c", task1, data, timeout=None)  # 单项关闭超时
 默认向 stderr 输出 `START`、`DONE`、`TIMEOUT`、`FAILED` 日志；不需要时使用
 `AnswerBook(show_log=False)`。普通异常会记录失败日志并重新抛出，不会伪装成答案。
 
-启用超时后 task 在 `spawn` 子进程中运行。task、参数和返回值必须可被 `pickle`，现场最
-稳妥的做法是把 task 写成模块顶层函数，并把执行入口放在：
+启用超时后 task 在 `spawn` 子进程中运行。task、reader、parser、参数和返回值必须可被
+`pickle`，现场最稳妥的做法是把这些函数写在模块顶层，并把执行入口放在：
 
 ```python
 if __name__ == "__main__":
@@ -92,25 +92,39 @@ book.write_json(indent=None)  # 紧凑 JSON
 ```python
 from utils import Exam, read_data
 
-exam = Exam(reader=read_data, timeout=2)
-```
-
-`reader` 接收一个文件名匹配串，返回将要传给 task 的数据。直接传官方 `read_data` 时，
-`Exam` 会绑定创建位置所在的题目目录；即使进入 Windows 超时子进程，也仍会读取正确的
-同级 `data/`。
-
-需要解析时，自定义模块顶层 reader：
-
-```python
-from utils import read_data
-
-def rd(name):
-    data = read_data(name)
-    if not isinstance(data, str):
-        raise ValueError(f"{name!r} 没有唯一匹配文件")
+def parse(data: str) -> list[int]:
     return list(map(int, data.split(",")))
 
-exam = Exam(reader=rd)
+
+exam = Exam(reader=read_data, parser=parse, timeout=2)
+```
+
+`reader` 接收文件名匹配串并读取原始数据；可选的 `parser` 接收一份文本并返回 task
+真正需要的数据。直接传官方 `read_data` 时，`Exam` 会绑定创建位置所在的题目目录；
+即使进入 Windows 超时子进程，也仍会读取正确的同级 `data/`。
+
+reader 返回字符串时，parser 执行一次；reader 返回字典时，parser 会递归应用到每个叶子
+值，文件名键和字典结构保持不变：
+
+```python
+read_data("all")
+# {"a.txt": "1,2", "b.txt": "3,4"}
+
+# 传入 task 前变成：
+# {"a.txt": [1, 2], "b.txt": [3, 4]}
+```
+
+同一份试题通常只需要一个全局 parser。特殊格式可在 `Case` 或 `Series` 上覆盖；显式传
+`parser=None` 会为该组关闭全局解析：
+
+```python
+def parse_colon(data: str) -> list[int]:
+    return list(map(int, data.split(":")))
+
+
+Case("old", files=("old",), parser=parse_colon)  # 覆盖全局 parser
+Case("text", files=("text",), parser=None)       # 保留 reader 原始结果
+Series("7", parser=parse_colon)                  # 整组覆盖
 ```
 
 执行方式：
@@ -149,6 +163,9 @@ task(2, 4, reader("4a"), reader("4b"))
 Case("slow", files=("5a",), timeout=10)
 Case("unlimited", files=("5b",), timeout=None)
 ```
+
+parser 也有同样的继承思路：不写表示继承 `Exam.parser`，传 callable 表示覆盖，传
+`None` 表示关闭。覆盖只影响这个 `Case`。
 
 ### 一次取得 `data/` 下全部文件
 
@@ -256,7 +273,7 @@ task(100, 200, reader("2b"))
 ```
 
 映射值必须是 tuple。也可以用 `Series("7", "abcd")` 自定义 variant 集合。整组可用
-`timeout=` 设置同一个单项超时策略。
+`timeout=` 设置同一个单项超时策略，用 `parser=` 覆盖或关闭全局 parser。
 
 ## 5. `Exam.add`：显式注册
 
@@ -326,14 +343,11 @@ def task3(left, right):
 from utils import Case, Exam, Series, read_data
 
 
-def rd(name):
-    data = read_data(name)
-    if not isinstance(data, str):
-        raise ValueError(f"期望唯一文件，实际匹配结果为 {type(data).__name__}")
+def parse(data: str) -> list[int]:
     return list(map(int, data.split(",")))
 
 
-exam = Exam(reader=rd, timeout=2)
+exam = Exam(reader=read_data, parser=parse, timeout=2)
 
 
 @exam.task
@@ -346,7 +360,14 @@ def task2(n, data):
     ...
 
 
-@exam.task(Case("special", files=("left", "right"), timeout=None))
+@exam.task(
+    Case(
+        "special",
+        files=("left", "right"),
+        timeout=None,
+        parser=None,
+    )
+)
 def task_special(left, right):
     ...
 
@@ -381,7 +402,8 @@ reader 中用 `re.fullmatch` 或 `re.search` 过滤即可。
 | 预期字符串却得到 dict | 匹配串命中了多个文件；缩小匹配或让 reader 主动处理 |
 | `read_data` 返回 `None` | 检查同级 `data/`、大小写和匹配串 |
 | 空串没有全选 | 确保写的是 `files=("",)` 而不是空 tuple `files=()` |
-| 超时模式启动失败 | task、reader、参数、返回值保持可 pickle，入口加 `__main__` guard |
+| parser 没有生效 | 只有 `Input` / `files` 的 reader 结果会解析；检查 Case 是否传了 `parser=None` |
+| parser 收到字典 | 不会；映射会递归处理，parser 只接收叶子值 |
+| 超时模式启动失败 | task、reader、parser、参数、返回值保持可 pickle，入口加 `__main__` guard |
 | bare `@exam.task` 推导错误 | 改用 `@exam.task(Case(...))` 或 `@exam.task(Series(...))` |
 | 没有生成文件 | `execute()` 默认打印；写文件要用 `output=True` |
-
