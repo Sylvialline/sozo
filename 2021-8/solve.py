@@ -1,22 +1,36 @@
 from collections import defaultdict
+from functools import partial
 from itertools import accumulate, combinations
 from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+HERE = Path(__file__).resolve().parent
+OFFICIAL_DATA = HERE / "official_data"
 sys.path.insert(0, str(ROOT))
 
-from utils import Case, Exam, Input, read_data
+from utils import Case, Exam, Input, read_data, read_files
 
 def parse(data: str) -> list[int]:
     return list(map(int, data.split(':')))
+
+read_official_files = partial(
+    read_files,
+    base_dir=OFFICIAL_DATA
+)
+
+read_official_data = partial(
+    read_data,
+    base_dir=OFFICIAL_DATA
+)
 
 exam = Exam(reader=read_data, parser=parse)
 
 @exam.task(
     Case(
         "1.1",
-        files=("infections.txt",)
+        files=("infections.txt",),
+        reader=read_official_files
     )
 )
 def task1_1(data: list[int]):
@@ -26,7 +40,8 @@ def task1_1(data: list[int]):
 @exam.task(
     Case(
         "1.2",
-        files=("",)
+        files=("",),
+        reader=read_official_data
     )
 )
 def task1_2(data: dict[str, list[int]]):
@@ -36,7 +51,8 @@ def task1_2(data: dict[str, list[int]]):
 @exam.task(
     Case(
         "1.3",
-        files=("infections.txt",)
+        files=("infections.txt",),
+        reader=read_official_files
     )
 )
 def task1_3(a: list[int]):
@@ -56,7 +72,8 @@ def task1_3(a: list[int]):
 @exam.task(
     Case(
         "1.4",
-        files=("infections.txt",)
+        files=("infections.txt",),
+        reader=read_official_files
     )
 )
 def task1_4(a: list[int]):
@@ -81,7 +98,8 @@ def task1_4(a: list[int]):
 @exam.task(
     Case(
         "2.1",
-        files=("infections.txt",)
+        files=("infections.txt",),
+        reader=read_official_files
     )
 )
 def task2_1(a: list[int]):
@@ -110,7 +128,8 @@ def compute_similarity(a: list[int], b: list[int]):
 @exam.task(
     Case(
         "2.2",
-        files=("",)
+        files=("",),
+        reader=read_official_data
     )
 )
 def task2_2(data: dict[str, list[int]]):
@@ -132,7 +151,8 @@ def task2_2(data: dict[str, list[int]]):
 @exam.task(
     Case(
         "2.3",
-        files=("infections2.txt",)
+        files=("infections2.txt",),
+        reader=read_official_files
     )
 )
 def task2_3(x: list[int]):
@@ -156,13 +176,14 @@ def exp_approx(x: list[int]):
     a21, a22, b2 = n*(n-1)/2, n*(n-1)*(2*n-1)/6, sum(i*xi for i, xi in enumerate(y))
     A = np.array([[a11, a12], [a21, a22]])
     b = np.array([b1, b2])
-    res = np.linalg.solve(A, b)
-    return math.exp(res[0]), math.exp(res[1])
+    sol = np.linalg.solve(A, b)
+    return math.exp(sol[0]), math.exp(sol[1])
 
 @exam.task(
     Case(
         "2.4",
-        files=("infections2.txt",)
+        files=("infections2.txt",),
+        reader=read_official_files
     )
 )
 def task2_4(x: list[int]):
