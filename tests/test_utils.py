@@ -1,4 +1,5 @@
 import json
+import pickle
 import time
 import unittest
 from contextlib import redirect_stderr
@@ -17,7 +18,10 @@ from utils import (
     Input,
     Series,
     read_data,
+    read_files,
 )
+
+import utils.exam as exam_module
 
 
 def _identity_task(value):
@@ -430,6 +434,190 @@ class ExamTests(unittest.TestCase):
             self.assertEqual(book.answers["raw"]["result"], "1:2")
             self.assertEqual(book.answers["csvx"]["result"], [3, 4])
 
+    def test_reader_and_parser_inherit_independently_at_each_level(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+
+            def exam_reader(name):
+                return f"exam:{name}"
+
+            def case_reader(name):
+                return f"case:{name}"
+
+            def input_reader(name):
+                return f"input:{name}"
+
+            exam = self._make_exam(
+                root,
+                exam_reader,
+                parser=str.upper,
+                show_log=False,
+            )
+            exam.add(
+                lambda *values: values,
+                Case(
+                    "layers",
+                    Input("exam"),
+                    Input("input-reader", reader=input_reader),
+                    Input("raw", parser=None),
+                    Input(
+                        "input-both",
+                        reader=input_reader,
+                        parser=str.lower,
+                    ),
+                    reader=case_reader,
+                ),
+            )
+
+            result = exam.execute(output=None).answers["layers"]["result"]
+
+            self.assertEqual(
+                result,
+                (
+                    "CASE:EXAM",
+                    "INPUT:INPUT-READER",
+                    "case:raw",
+                    "input:input-both",
+                ),
+            )
+
+    def test_series_propagates_reader_and_parser_to_generated_cases(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: f"exam:{name}",
+                parser=str.lower,
+                show_log=False,
+            )
+            exam.add(
+                _identity_task,
+                Series(
+                    "x",
+                    "a",
+                    reader=lambda name: f"series:{name}",
+                    parser=str.upper,
+                ),
+            )
+
+            result = exam.execute(output=None).answers["xa"]["result"]
+
+            self.assertEqual(result, "SERIES:XA")
+
+    def test_files_accepts_explicit_input_with_local_configuration(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name,
+                parser=str.upper,
+                show_log=False,
+            )
+            exam.add(
+                lambda left, right: (left, right),
+                Case(
+                    "mixed",
+                    files=(
+                        "left",
+                        Input(
+                            "right",
+                            reader=lambda name: f"<{name}>",
+                            parser=None,
+                        ),
+                    ),
+                ),
+            )
+
+            result = exam.execute(output=None).answers["mixed"]["result"]
+
+            self.assertEqual(result, ("LEFT", "<right>"))
+
+    def test_input_level_read_data_binds_exam_directory(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "input.txt").write_text("bound", encoding="utf-8")
+            exam = self._make_exam(
+                root,
+                str,
+                timeout=1,
+                show_log=False,
+            )
+            exam.add(
+                _identity_task,
+                Case("bound", Input("input", reader=read_data)),
+            )
+
+            result = exam.execute(output=None).answers["bound"]["result"]
+
+            self.assertEqual(result, "bound")
+
+    def test_input_level_read_files_binds_exam_directory_in_timeout_process(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "infections.txt").write_text("root", encoding="utf-8")
+            exam = self._make_exam(
+                root,
+                str,
+                timeout=1,
+                show_log=False,
+            )
+            exam.add(
+                _identity_task,
+                Case(
+                    "bound-file",
+                    Input("infections.txt", reader=read_files),
+                ),
+            )
+
+            result = exam.execute(output=None).answers["bound-file"]["result"]
+
+            self.assertEqual(result, "root")
+
+    def test_inherit_sentinel_survives_pickle_round_trip(self):
+        restored = pickle.loads(pickle.dumps(Input("x")))
+
+        self.assertIs(restored.reader, exam_module.INHERIT)
+        self.assertIs(restored.parser, exam_module.INHERIT)
+
+    def test_input_parser_can_reenable_parsing_disabled_by_case(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                str,
+                parser=str.lower,
+                show_log=False,
+            )
+            exam.add(
+                lambda raw, parsed: (raw, parsed),
+                Case(
+                    "reenabled",
+                    Input("RAW"),
+                    Input("PARSED", parser=str.lower),
+                    parser=None,
+                ),
+            )
+
+            result = exam.execute(output=None).answers["reenabled"]["result"]
+
+            self.assertEqual(result, ("RAW", "parsed"))
+
+    def test_rejects_invalid_layer_configuration(self):
+        with self.assertRaises(TypeError):
+            Input("x", reader=None)
+        with self.assertRaises(TypeError):
+            Input("x", parser=1)
+        with self.assertRaises(TypeError):
+            Case("x", reader=None)
+        with self.assertRaises(TypeError):
+            Series("x", reader=None)
+        with TemporaryDirectory() as temp_dir:
+            with self.assertRaises(TypeError):
+                self._make_exam(
+                    Path(temp_dir),
+                    str,
+                    parser=exam_module.INHERIT,
+                )
+
     def test_resolves_explicit_input_recursively(self):
         with TemporaryDirectory() as temp_dir:
             exam = self._make_exam(
@@ -685,6 +873,45 @@ class ReadDataTests(unittest.TestCase):
                 "input", encoding="utf-8"
             )
             self.assertIsNone(load("missing"))
+
+
+class ReadFilesTests(unittest.TestCase):
+    def test_reads_exact_path_and_sorted_glob_with_stable_shapes(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "infections.txt").write_text("root", encoding="utf-8")
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "data2.txt").write_text("B", encoding="utf-8")
+            (data_dir / "data1.txt").write_text("A", encoding="utf-8")
+
+            self.assertEqual(
+                read_files("infections.txt", base_dir=root),
+                "root",
+            )
+            self.assertEqual(
+                read_files("data/data*.txt", base_dir=root),
+                {"data/data1.txt": "A", "data/data2.txt": "B"},
+            )
+            self.assertEqual(
+                read_files("data/data1.*", base_dir=root),
+                {"data/data1.txt": "A"},
+            )
+
+    def test_rejects_missing_absolute_empty_and_parent_selectors(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+
+            with self.assertRaises(FileNotFoundError):
+                read_files("missing.txt", base_dir=root)
+            with self.assertRaises(FileNotFoundError):
+                read_files("data/*.txt", base_dir=root)
+            with self.assertRaises(ValueError):
+                read_files("", base_dir=root)
+            with self.assertRaises(ValueError):
+                read_files(str(root / "input.txt"), base_dir=root)
+            with self.assertRaises(ValueError):
+                read_files("../input.txt", base_dir=root)
 
 
 class BatchIOAnswerTests(unittest.TestCase):

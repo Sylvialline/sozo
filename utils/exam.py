@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable, Iterator, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum, auto
 from functools import partial
 from pathlib import Path
 from typing import Any
 
 from .answer_book import AnswerBook
-from .data_io import read_data
+from .data_io import read_data, read_files
 
 
 class _UseDefaultTimeout:
@@ -19,34 +20,50 @@ class _PrintToStdout:
     pass
 
 
-class _UseDefaultParser:
-    pass
+class _Inherit(Enum):
+    VALUE = auto()
 
 
 _USE_DEFAULT_TIMEOUT = _UseDefaultTimeout()
 _PRINT_TO_STDOUT = _PrintToStdout()
-_USE_DEFAULT_PARSER = _UseDefaultParser()
+INHERIT = _Inherit.VALUE
 
 
+Reader = Callable[[str], Any]
 Parser = Callable[[str], Any]
 
 
 def _validate_parser(
-    parser: Parser | None | _UseDefaultParser,
+    parser: Parser | None | _Inherit,
 ) -> None:
-    if parser is not _USE_DEFAULT_PARSER and parser is not None and not callable(parser):
-        raise TypeError("parser 必须是可调用对象或 None")
+    if parser is not INHERIT and parser is not None and not callable(parser):
+        raise TypeError("parser 必须是可调用对象、None 或 INHERIT")
+
+
+def _validate_reader(reader: Reader | _Inherit) -> None:
+    if reader is not INHERIT and not callable(reader):
+        raise TypeError("reader 必须是可调用对象或 INHERIT")
+
+
+def _bind_reader(reader: Reader, base_dir: Path) -> Reader:
+    if reader is read_data or reader is read_files:
+        return partial(reader, base_dir=base_dir)
+    return reader
 
 
 @dataclass(frozen=True)
 class Input:
-    """A data-file name that ``Exam`` resolves with its configured reader."""
+    """An opaque selector resolved by an inherited or local reader/parser."""
 
     name: str
+    reader: Reader | _Inherit = field(default=INHERIT, kw_only=True)
+    parser: Parser | None | _Inherit = field(default=INHERIT, kw_only=True)
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str):
             raise TypeError("Input.name 必须是字符串")
+        _validate_reader(self.reader)
+        _validate_parser(self.parser)
 
 
 def _parse_reader_output(value: Any, parser: Parser) -> Any:
@@ -60,19 +77,32 @@ def _parse_reader_output(value: Any, parser: Parser) -> Any:
 
 def _resolve_input(
     value: Any,
-    reader: Callable[[str], Any],
+    reader: Reader,
     parser: Parser | None,
+    base_dir: Path,
 ) -> Any:
     if isinstance(value, Input):
-        data = reader(value.name)
-        return data if parser is None else _parse_reader_output(data, parser)
+        effective_reader = reader if value.reader is INHERIT else value.reader
+        effective_parser = parser if value.parser is INHERIT else value.parser
+        data = _bind_reader(effective_reader, base_dir)(value.name)
+        return (
+            data
+            if effective_parser is None
+            else _parse_reader_output(data, effective_parser)
+        )
     if isinstance(value, tuple):
-        return tuple(_resolve_input(item, reader, parser) for item in value)
+        return tuple(
+            _resolve_input(item, reader, parser, base_dir)
+            for item in value
+        )
     if isinstance(value, list):
-        return [_resolve_input(item, reader, parser) for item in value]
+        return [
+            _resolve_input(item, reader, parser, base_dir)
+            for item in value
+        ]
     if isinstance(value, dict):
         return {
-            key: _resolve_input(item, reader, parser)
+            key: _resolve_input(item, reader, parser, base_dir)
             for key, item in value.items()
         }
     return value
@@ -81,11 +111,12 @@ def _resolve_input(
 def _execute_case(
     task: Callable[..., Any],
     args: tuple[Any, ...],
-    reader: Callable[[str], Any],
+    reader: Reader,
     parser: Parser | None,
+    base_dir: Path,
 ) -> Any:
     resolved_args = tuple(
-        _resolve_input(arg, reader, parser)
+        _resolve_input(arg, reader, parser, base_dir)
         for arg in args
     )
     return task(*resolved_args)
@@ -97,34 +128,41 @@ class Case:
 
     label: str
     args: tuple[Any, ...]
-    files: tuple[str, ...]
+    files: tuple[str | Input, ...]
     timeout: float | None | _UseDefaultTimeout
-    parser: Parser | None | _UseDefaultParser
+    reader: Reader | _Inherit
+    parser: Parser | None | _Inherit
 
     def __init__(
         self,
         label: str,
         /,
         *args: Any,
-        files: tuple[str, ...] = (),
+        files: tuple[str | Input, ...] = (),
         timeout: float | None | _UseDefaultTimeout = _USE_DEFAULT_TIMEOUT,
-        parser: Parser | None | _UseDefaultParser = _USE_DEFAULT_PARSER,
+        reader: Reader | _Inherit = INHERIT,
+        parser: Parser | None | _Inherit = INHERIT,
     ) -> None:
         if not isinstance(label, str) or not label:
             raise ValueError("Case.label 必须是非空字符串")
         if not isinstance(files, tuple):
             raise TypeError("files 必须是文件名 tuple")
-        if any(not isinstance(name, str) for name in files):
-            raise TypeError("files 中的每个匹配串必须是字符串")
+        if any(not isinstance(item, (str, Input)) for item in files):
+            raise TypeError("files 中的每项必须是字符串或 Input")
+        _validate_reader(reader)
         _validate_parser(parser)
         object.__setattr__(self, "label", label)
         object.__setattr__(
             self,
             "args",
-            args + tuple(Input(name) for name in files),
+            args + tuple(
+                Input(item) if isinstance(item, str) else item
+                for item in files
+            ),
         )
         object.__setattr__(self, "files", files)
         object.__setattr__(self, "timeout", timeout)
+        object.__setattr__(self, "reader", reader)
         object.__setattr__(self, "parser", parser)
 
 
@@ -139,7 +177,8 @@ class Series:
         input_count: int = 1,
         label_separator: str = "",
         timeout: float | None | _UseDefaultTimeout = _USE_DEFAULT_TIMEOUT,
-        parser: Parser | None | _UseDefaultParser = _USE_DEFAULT_PARSER,
+        reader: Reader | _Inherit = INHERIT,
+        parser: Parser | None | _Inherit = INHERIT,
     ) -> None:
         if not isinstance(prefix, str) or not prefix:
             raise ValueError("Series.prefix 必须是非空字符串")
@@ -149,6 +188,7 @@ class Series:
             or input_count < 0
         ):
             raise ValueError("input_count 必须是非负整数")
+        _validate_reader(reader)
         _validate_parser(parser)
 
         if isinstance(variants, str):
@@ -175,6 +215,7 @@ class Series:
         self.input_count = input_count
         self.label_separator = label_separator
         self.timeout = timeout
+        self.reader = reader
         self.parser = parser
 
     def __iter__(self) -> Iterator[Case]:
@@ -195,6 +236,7 @@ class Series:
                 *params,
                 files=files,
                 timeout=self.timeout,
+                reader=self.reader,
                 parser=self.parser,
             )
 
@@ -204,23 +246,27 @@ class Exam:
 
     def __init__(
         self,
-        reader: Callable[[str], Any],
+        reader: Reader,
         *,
         timeout: float | None = None,
         show_log: bool = True,
         book: AnswerBook | None = None,
         parser: Parser | None = None,
+        base_dir: str | Path | None = None,
     ) -> None:
         if not callable(reader):
             raise TypeError("reader 必须是可调用对象")
+        if parser is INHERIT:
+            raise TypeError("Exam.parser 必须是可调用对象或 None")
         _validate_parser(parser)
 
-        base_dir = self._caller_directory()
-        self.reader = (
-            partial(read_data, base_dir=base_dir)
-            if reader is read_data
-            else reader
+        resolved_base_dir = (
+            self._caller_directory()
+            if base_dir is None
+            else Path(base_dir).resolve()
         )
+        self._base_dir = resolved_base_dir
+        self.reader = _bind_reader(reader, resolved_base_dir)
         self.parser = parser
         self.book = (
             book
@@ -228,7 +274,7 @@ class Exam:
             else AnswerBook(
                 timeout=timeout,
                 show_log=show_log,
-                base_dir=base_dir,
+                base_dir=resolved_base_dir,
             )
         )
         self._entries: list[tuple[Callable[..., Any], Case]] = []
@@ -356,9 +402,14 @@ class Exam:
         self._executed = True
 
         for task, case in self._entries:
+            reader = (
+                self.reader
+                if case.reader is INHERIT
+                else _bind_reader(case.reader, self._base_dir)
+            )
             parser = (
                 self.parser
-                if case.parser is _USE_DEFAULT_PARSER
+                if case.parser is INHERIT
                 else case.parser
             )
             if case.timeout is _USE_DEFAULT_TIMEOUT:
@@ -367,8 +418,9 @@ class Exam:
                     _execute_case,
                     task,
                     case.args,
-                    self.reader,
+                    reader,
                     parser,
+                    self._base_dir,
                 )
             else:
                 self.book.run(
@@ -376,8 +428,9 @@ class Exam:
                     _execute_case,
                     task,
                     case.args,
-                    self.reader,
+                    reader,
                     parser,
+                    self._base_dir,
                     timeout=case.timeout,
                 )
 

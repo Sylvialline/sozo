@@ -127,6 +127,23 @@ Case("text", files=("text",), parser=None)       # 保留 reader 原始结果
 Series("7", parser=parse_colon)                  # 整组覆盖
 ```
 
+reader 和 parser 都能逐层设置，且二者分别独立继承：
+
+```text
+Input > Case/Series > Exam
+```
+
+省略某项表示继承；`parser=None` 表示明确关闭解析。覆盖 reader 不会自动关闭 parser。
+`Series` 是 `Case` 工厂，它的设置会传给生成的每个 Case：
+
+```python
+from utils import Input
+
+Case("case", Input("x", reader=other_reader))
+Case("raw", files=("x",), reader=other_reader, parser=None)
+Series("7", reader=other_reader, parser=parse_colon)
+```
+
 执行方式：
 
 ```python
@@ -156,6 +173,16 @@ task(2, 4, reader("4a"), reader("4b"))
 
 规则是“普通参数在前，`files` 读取结果按顺序追加在后”。`files` 必须写成 tuple；单个
 文件也要写成 `files=("4a",)`，末尾逗号不能省略。
+
+其中每项可以是字符串，也可以是带局部配置的 `Input`；字符串等价于完全继承的
+`Input("4a")`：
+
+```python
+Case(
+    "mixed",
+    files=("left", Input("right", reader=other_reader, parser=None)),
+)
+```
 
 单项超时可以覆盖 `Exam`：
 
@@ -213,8 +240,32 @@ Case(
 )
 ```
 
-执行前，所有嵌套的 `Input` 都会递归替换成对应的 reader 返回值。`Input("")` 同样表示
-读取全部文件。
+执行前，所有嵌套的 `Input` 都会递归替换成对应的 reader 返回值。使用 `read_data` 时，
+`Input("")` 同样表示读取 `data/` 下的全部文件。
+
+`Input.name` 是交给 reader 的不透明 selector，不内建路径或 glob 语义。单个 Input 可只
+覆盖 reader、只覆盖 parser，或同时覆盖二者；未设置的字段继续继承 Case/Series/Exam。
+
+### 根目录相对路径与 glob：`read_files`
+
+官方数据同时位于题目根目录和 `data/` 子目录时，使用 `read_files`：
+
+```python
+from utils import Case, Exam, read_files
+
+exam = Exam(read_files, parser=parse_colon)
+exam.add(task_root, Case("root", files=("infections.txt",)))
+exam.add(task_nested, Case("nested", files=("data/data*.txt",)))
+```
+
+- 精确路径始终返回 `str`；
+- 含 glob 的 selector 始终返回有序 `{相对路径: 文本}`，即使只有一个匹配；
+- 不存在或零匹配会抛出 `FileNotFoundError`；
+- 不接受绝对路径、空 selector 或离开题目目录的 `..`。
+
+`Exam` 会把创建位置绑定为 reader 根目录，改变 CWD 或进入 Windows 超时子进程都不会
+改变读取位置。也可通过 `Exam(..., base_dir=path)` 显式指定根目录。`read_data` 的旧行为
+保持不变，仍专门读取同级 `data/` 并使用文件名子串匹配。
 
 ## 4. `Series`：批量生成规则 case
 

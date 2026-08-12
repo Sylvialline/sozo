@@ -196,6 +196,25 @@ def task3(data1, data2):
 文本。`Case(..., parser=other_parse)` 或 `Series(..., parser=other_parse)` 可以覆盖全局
 解析器，显式传 `parser=None` 则关闭该 case 或题组的解析。
 
+`reader` 也可在 `Case`、`Series` 或单个 `Input` 上覆盖，`parser` 与 `reader` 分别独立
+继承，优先级为 `Input > Case/Series > Exam`。省略配置表示继承；`parser=None` 明确关闭
+解析。需要根目录精确路径或 glob 时使用 `read_files`：
+
+```python
+from utils import Case, Exam, Input, read_files
+
+exam = Exam(read_files, parser=parse)
+exam.add(task_one, Case("one", files=("infections.txt",)))
+exam.add(task_all, Case("all", files=("data/data*.txt",)))
+exam.add(
+    task_mixed,
+    Case("mixed", Input("infections.txt"), Input("raw.txt", parser=None)),
+)
+```
+
+精确路径始终读取成字符串；glob 始终读取成按相对路径排序的字典，即使只匹配一个文件。
+找不到输入时会直接抛出 `FileNotFoundError`。旧 `read_data` 的匹配和返回规则保持不变。
+
 `Exam(reader=read_data)` 可以直接使用：`Exam` 会把创建位置所在的题目目录绑定给
 `read_data`，经过内部调用层或 Windows 超时子进程时也不会误读 `utils/data/`。
 `Case(..., files=("",))` 会把 `data/` 下全部普通文件作为一个读取结果传给 task。

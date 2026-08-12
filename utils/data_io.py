@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+from glob import has_magic
 from pathlib import Path
 
 
@@ -70,3 +71,55 @@ def read_data(
     if len(result) == 1:
         return next(iter(result.values()))
     return result
+
+
+def read_files(
+    selector: str,
+    *,
+    base_dir: str | Path | None = None,
+) -> str | dict[str, str]:
+    """Read one exact file or a glob relative to the caller directory.
+
+    Exact selectors always return one text string. Glob selectors always
+    return a relative-path-to-text dictionary, even with only one match.
+    Missing exact files and empty glob matches raise ``FileNotFoundError``.
+
+    ``base_dir`` lets orchestration code bind a stable root before entering a
+    Windows timeout subprocess, where the original caller stack is absent.
+    """
+    if not isinstance(selector, str):
+        raise TypeError("selector 必须是字符串")
+    if not selector:
+        raise ValueError("selector 不能为空；读取多个文件请使用 glob")
+
+    relative = Path(selector)
+    if relative.is_absolute():
+        raise ValueError("selector 必须是相对于题目目录的路径")
+    if ".." in relative.parts:
+        raise ValueError("selector 不能离开题目目录")
+
+    root = _caller_directory() if base_dir is None else Path(base_dir).resolve()
+    if not has_magic(selector):
+        path = (root / relative).resolve()
+        if not path.is_relative_to(root):
+            raise ValueError("selector 不能离开题目目录")
+        if not path.is_file():
+            raise FileNotFoundError(f"输入文件不存在: {selector!r}")
+        return path.read_text(encoding="utf-8")
+
+    paths = sorted(
+        (
+            path.resolve()
+            for path in root.glob(selector)
+            if path.is_file()
+            and path.resolve().is_relative_to(root)
+        ),
+        key=lambda path: path.relative_to(root).as_posix(),
+    )
+    if not paths:
+        raise FileNotFoundError(f"没有输入文件匹配: {selector!r}")
+
+    return {
+        path.relative_to(root).as_posix(): path.read_text(encoding="utf-8")
+        for path in paths
+    }
