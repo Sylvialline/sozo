@@ -3,13 +3,15 @@ from functools import partial
 from itertools import accumulate, combinations
 from pathlib import Path
 import sys
+import math, numpy as np
+from scipy.signal import convolve
 
 ROOT = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
 OFFICIAL_DATA = HERE / "official_data"
 sys.path.insert(0, str(ROOT))
 
-from utils import Case, Exam, Input, read_data, read_files
+from utils import Case, Exam, read_data, read_files
 
 def parse(data: str) -> list[int]:
     return list(map(int, data.split(':')))
@@ -34,8 +36,7 @@ exam = Exam(reader=read_data, parser=parse)
     )
 )
 def task1_1(data: list[int]):
-    a = sorted(set(data), reverse=True)
-    return a[9]
+    return sorted(set(data), reverse=True)[9]
 
 @exam.task(
     Case(
@@ -45,8 +46,10 @@ def task1_1(data: list[int]):
     )
 )
 def task1_2(data: dict[str, list[int]]):
-    a = [sorted(set(d), reverse=True) for d in data.values()]
-    return sum(b[9] for b in a)
+    return sum(
+        sorted(set(d), reverse=True)[9]
+        for d in data.values()
+    )
 
 @exam.task(
     Case(
@@ -57,16 +60,14 @@ def task1_2(data: dict[str, list[int]]):
 )
 def task1_3(a: list[int]):
     res = []
-    for i, d in enumerate(a):
-        x = d
-        if i != 0:
-            x -= a[i-1]
-        s = '+' if x >= 0 else ''
-        res.append(s+str(x))
-    res_str = ''.join(res)
+    prev = 0
+    for x in a:
+        res.append(f"{x - prev:+}")
+        prev = x
+    seq = ''.join(res)
     return {
-        "len": len(res_str),
-        "sequence": res_str
+        "len": len(seq),
+        "sequence": seq
     }
 
 @exam.task(
@@ -113,7 +114,6 @@ def task2_1(a: list[int]):
     }
 
 def compute_similarity(a: list[int], b: list[int]):
-    from scipy.signal import convolve
     if len(a) < len(b):
         a, b = b, a
     m, n = len(a), len(b)
@@ -134,9 +134,9 @@ def compute_similarity(a: list[int], b: list[int]):
 )
 def task2_2(data: dict[str, list[int]]):
     book = defaultdict(list)
-    for ix, iy in combinations(data.items(), 2):
-        sim = compute_similarity(ix[1], iy[1])
-        book[sim].append((ix[0], iy[0]))
+    for (name_a, a), (name_a, b) in combinations(data.items(), 2):
+        sim = compute_similarity(a, b)
+        book[sim].append((name_a, name_a))
 
     max_sim = max(book.keys())
     return {
@@ -161,23 +161,23 @@ def task2_3(x: list[int]):
     sum_ix = sum(i*xi for i, xi in enumerate(x))
     sum_i = n*(n-1)/2
     sum_i_2 = n*(n-1)*(2*n-1)/6
-    a = (n*sum_ix - sum_i*sum_x) / (n*sum_i_2 - sum_i*sum_i)
-    k = (sum_i_2*sum_x - sum_ix*sum_i) / (n*sum_i_2 - sum_i*sum_i)
+    den = n*sum_i_2 - sum_i**2
+    a = (n*sum_ix - sum_i*sum_x) / den
+    k = (sum_i_2*sum_x - sum_ix*sum_i) / den
     return {
         'a': f"{a:.4f}",
         'k': f"{k:.4f}"
     }
 
 def exp_approx(x: list[int]):
-    import math, numpy as np
     y = [math.log1p(xi) for xi in x]
     n = len(x)
     a11, a12, b1 = n, n*(n-1)/2, sum(y)
     a21, a22, b2 = n*(n-1)/2, n*(n-1)*(2*n-1)/6, sum(i*xi for i, xi in enumerate(y))
     A = np.array([[a11, a12], [a21, a22]])
     b = np.array([b1, b2])
-    sol = np.linalg.solve(A, b)
-    return math.exp(sol[0]), math.exp(sol[1])
+    log_k, log_a = np.linalg.solve(A, b)
+    return math.exp(log_k), math.exp(log_a)
 
 @exam.task(
     Case(
