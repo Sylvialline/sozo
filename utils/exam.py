@@ -8,6 +8,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
+from ._caller import caller_directory
 from .answer_book import AnswerBook
 from .data_io import read_data, read_files
 
@@ -261,7 +262,7 @@ class Exam:
         _validate_parser(parser)
 
         resolved_base_dir = (
-            self._caller_directory()
+            caller_directory("Exam()", action="创建")
             if base_dir is None
             else Path(base_dir).resolve()
         )
@@ -279,21 +280,6 @@ class Exam:
         )
         self._entries: list[tuple[Callable[..., Any], Case]] = []
         self._executed = False
-
-    @staticmethod
-    def _caller_directory() -> Path:
-        frame = inspect.currentframe()
-        if frame is None or frame.f_back is None or frame.f_back.f_back is None:
-            raise RuntimeError("无法确定 Exam() 的调用代码文件")
-
-        try:
-            caller_filename = frame.f_back.f_back.f_code.co_filename
-        finally:
-            del frame
-
-        if caller_filename.startswith("<") and caller_filename.endswith(">"):
-            raise RuntimeError("Exam() 必须从代码文件中创建")
-        return Path(caller_filename).resolve().parent
 
     def add(
         self,

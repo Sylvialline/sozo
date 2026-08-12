@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 import json
 import math
 import sys
@@ -11,6 +10,8 @@ from multiprocessing.connection import Connection
 from pathlib import Path
 from time import perf_counter
 from typing import Any
+
+from ._caller import caller_directory
 
 
 _PROCESS_START_TIMEOUT = 30.0
@@ -184,25 +185,10 @@ class AnswerBook:
         self.show_log = show_log
         self.answers: dict[str, dict[str, Any]] = {}
         self._base_dir = (
-            self._caller_directory()
+            caller_directory("AnswerBook()", action="创建")
             if base_dir is None
             else Path(base_dir).resolve()
         )
-
-    @staticmethod
-    def _caller_directory() -> Path:
-        frame = inspect.currentframe()
-        if frame is None or frame.f_back is None or frame.f_back.f_back is None:
-            raise RuntimeError("无法确定 AnswerBook() 的调用代码文件")
-
-        try:
-            caller_filename = frame.f_back.f_back.f_code.co_filename
-        finally:
-            del frame
-
-        if caller_filename.startswith("<") and caller_filename.endswith(">"):
-            raise RuntimeError("AnswerBook() 必须从代码文件中创建")
-        return Path(caller_filename).resolve().parent
 
     @staticmethod
     def _normalize_timeout(timeout: float | None) -> float | None:

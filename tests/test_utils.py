@@ -22,6 +22,7 @@ from utils import (
 )
 
 import utils.exam as exam_module
+from utils._caller import caller_directory
 
 
 def _identity_task(value):
@@ -38,6 +39,32 @@ def _parse_colon(data):
 
 def _uppercase_parser(data):
     return data.upper()
+
+
+class CallerDirectoryTests(unittest.TestCase):
+    def test_skips_internal_utils_frames_and_finds_external_caller(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            caller_path = root / "caller.py"
+            namespace = {"caller_directory": caller_directory}
+            source = (
+                "def locate():\n"
+                "    return caller_directory('test()')\n"
+            )
+            exec(compile(source, str(caller_path), "exec"), namespace)
+
+            self.assertEqual(namespace["locate"](), root.resolve())
+
+    def test_error_message_names_the_requesting_api(self):
+        with patch("utils._caller.inspect.currentframe", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, r"read_data\(\)"):
+                read_data("input")
+            with self.assertRaisesRegex(RuntimeError, r"read_files\(\)"):
+                read_files("input.txt")
+            with self.assertRaisesRegex(RuntimeError, r"Exam\(\)"):
+                Exam(str)
+            with self.assertRaisesRegex(RuntimeError, r"AnswerBook\(\)"):
+                AnswerBook()
 
 
 class AnswerBookTests(unittest.TestCase):
