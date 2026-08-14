@@ -1011,6 +1011,49 @@ class GraphTests(unittest.TestCase):
             [("b", "a", 3), ("c", "a", 5)],
         )
 
+    def test_bfs_distances_start_at_zero_and_omit_unreachable_nodes(self):
+        graph = Graph.from_nodes(range(6))
+        graph.add_undirected_edge(0, 1)
+        graph.add_undirected_edge(1, 2)
+        graph.add_undirected_edge(0, 3)
+
+        self.assertEqual(
+            graph.bfs_distances(0),
+            {0: 0, 1: 1, 3: 1, 2: 2},
+        )
+        self.assertNotIn(4, graph.bfs_distances(0))
+        with self.assertRaises(KeyError):
+            graph.bfs_distances("missing")
+
+        weighted = Graph.from_edges(
+            [(0, 1, 100), (0, 2, 1), (2, 1, 1)],
+            weighted=True,
+        )
+        self.assertEqual(weighted.bfs_distances(0), {0: 0, 1: 1, 2: 1})
+
+    def test_dijkstra_distances_use_weights_and_omit_unreachable_nodes(self):
+        graph = Graph.from_nodes([0, 1, 2, 3, "equal"], weighted=True)
+        graph.add_edge(0, 1, 4)
+        graph.add_edge(0, "equal", 4)
+        graph.add_edge(0, 2, 1)
+        graph.add_edge(2, 1, 2)
+
+        self.assertEqual(
+            graph.dijkstra_distances(0),
+            {0: 0, 1: 3, "equal": 4, 2: 1},
+        )
+        self.assertNotIn(3, graph.dijkstra_distances(0))
+        with self.assertRaises(KeyError):
+            graph.dijkstra_distances("missing")
+
+        unweighted = Graph.from_edges([(0, 1)])
+        with self.assertRaisesRegex(ValueError, "带权图"):
+            unweighted.dijkstra_distances(0)
+
+        negative = Graph.from_edges([(0, 1, -1)], weighted=True)
+        with self.assertRaisesRegex(ValueError, "负权边"):
+            negative.dijkstra_distances(0)
+
     def test_topological_sort_and_cycle_detection(self):
         graph = Graph.from_edges(
             [

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Hashable, Iterable, Iterator, Mapping
-from typing import Any, NamedTuple
+from heapq import heappop, heappush
+from itertools import count
+from typing import Any, Literal, NamedTuple
 
 
 Node = Hashable
@@ -175,8 +177,86 @@ class Graph:
     def node_count(self) -> int:
         return len(self.adj)
 
-    def edge_count(self) -> int:
-        return sum(len(neighbors) for neighbors in self.adj.values())
+    def edge_count(
+        self,
+        dedupe: Literal["none", "parallel", "undirected"] = "none",
+    ) -> int:
+        """
+        dedupe:
+            "none"       - count all edges
+            "parallel"   - deduplicate edges with the same direction
+            "undirected" - additionally merge opposite directions
+        """
+        if dedupe == "none":
+            return sum(len(neighbors) for neighbors in self.adj.values())
+
+        if dedupe not in ("parallel", "undirected"):
+            raise ValueError(f"unknown dedupe level: {dedupe}")
+
+        seen = set()
+
+        for edge in self.edges():
+            u, v = edge[:2]
+
+            if dedupe == "undirected":
+                key = frozenset((u, v))
+            else:
+                key = (u, v)
+
+            seen.add(key)
+
+        return len(seen)
+
+    def bfs_distances(self, start: Node) -> dict[Node, int]:
+        """Return minimum edge counts from ``start``, ignoring edge weights.
+
+        The start node has distance 0. Unreachable nodes are omitted. If a
+        problem counts visited nodes rather than traversed edges, add 1 at the
+        call site. On a weighted graph, weights are intentionally ignored.
+        """
+        if start not in self:
+            raise KeyError(start)
+
+        distances = {start: 0}
+        queue = deque([start])
+        while queue:
+            u = queue.popleft()
+            for v in self.neighbors(u):
+                if v not in distances:
+                    distances[v] = distances[u] + 1
+                    queue.append(v)
+        return distances
+
+    def dijkstra_distances(self, start: Node) -> dict[Node, Any]:
+        """Return weighted shortest-path distances from ``start``.
+
+        The graph must be weighted and reachable edge weights must be
+        nonnegative. The start node has distance 0; unreachable nodes are
+        omitted.
+        """
+        if not self.weighted:
+            raise ValueError("dijkstra_distances() 只适用于带权图")
+        if start not in self:
+            raise KeyError(start)
+
+        distances: dict[Node, Any] = {start: 0}
+        order = count()
+        heap = [(0, next(order), start)]
+
+        while heap:
+            distance, _, u = heappop(heap)
+            if distance != distances[u]:
+                continue
+
+            for v, weight in self.adj[u]:
+                if weight < 0:
+                    raise ValueError("Dijkstra 不支持负权边")
+                candidate = distance + weight
+                if v not in distances or candidate < distances[v]:
+                    distances[v] = candidate
+                    heappush(heap, (candidate, next(order), v))
+
+        return distances
 
     def topological_sort(self, *, reverse: bool = False) -> list[Node]:
         """Return a topological order, or raise ``ValueError`` for a cycle.

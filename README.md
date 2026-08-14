@@ -61,15 +61,17 @@ python run.py 2025-8 --pattern 'case\d+\.in'
 
 ## Python 考场速查库
 
-现场文档分成两个入口：
+现场文档分成三个入口：
 
 - [`utils/QUICK_REFERENCE.md`](utils/QUICK_REFERENCE.md)：从 `AnswerBook`、`Exam`、
   `Case`、`Series` 到 `@exam.task` 的答案执行与编排速查；
+- [`REFERENCE_PATTERNS.md`](REFERENCE_PATTERNS.md)：按题型场景定位历年 `solve.py`
+  中值得复用但不适合抽成通用 API 的参考写法；
 - [`samples/README.md`](samples/README.md)：面向 C++17/STL 使用者的 Python 3 离线
   示例索引，覆盖语法、标准库、解析、容器、算法、矩阵、调试和完整小任务。
 
-写题时优先查 `utils` 速查手册来选择运行范式；需要回忆 Python 写法或算法模板时再查
-`samples/`。
+写题时优先查 `utils` 速查手册来选择运行范式；遇到似曾相识的题型时查历年代码参考
+索引；需要回忆 Python 写法或算法模板时再查 `samples/`。
 
 ```powershell
 python samples/00_quick_reference/cpp_to_python_stl.py
@@ -116,6 +118,7 @@ def solve(data: str):
 .
 ├── AGENTS.md          # solve.py 的保护规则
 ├── README.md          # 仓库理念和现场用法
+├── REFERENCE_PATTERNS.md # 历年题解中的参考型代码索引
 ├── run.py             # 稳定的批量运行入口
 ├── samples/           # Python 考场速查、完整示例与批量自检
 ├── utils/             # 已验证的通用模块及 QUICK_REFERENCE.md
@@ -270,7 +273,7 @@ all_data = read_data("")  # 读取 data/ 下全部普通文件
 排序，并使用 UTF-8 解码。复杂正则筛选可在 `read_data("")` 返回的字典上自行完成，
 无需让日常文件名承担正则特殊字符风险。
 
-## `Graph`：显式节点集、缩点与拓扑排序
+## `Graph`：显式节点集、BFS、缩点与拓扑排序
 
 `Graph` 的核心不变量是：`g.adj` 的 key 集合就是完整节点集。无论节点是否有
 出边，都必须作为 key 存在；`g[u]` 和 `g.neighbors(u)` 只查询，缺失节点会抛出
@@ -294,11 +297,22 @@ cg, members, component_of = g.condense()
 for component in parts.graph.topological_sort(reverse=True):
     for node in parts.members[component]:
         ...
+
+# BFS：起点距离为 0，不可达节点不在字典中；带权图也忽略权值。
+dist = g.bfs_distances("a")
+# 若题目统计路径访问的节点数，而不是经过的边数，使用 dist[target] + 1。
+
+wg = Graph.from_edges([("a", "b", 3), ("a", "c", 1)], weighted=True)
+weighted_dist = wg.dijkstra_distances("a")  # 按非负权值计算
 ```
 
 `condensation()` 返回的 DAG 节点为 `0..k-1`，`members[i]` 和
 `component_of[u]` 提供两种方向的映射。跨 SCC 的平行边会保留；加权图也保留这些边的
 权重。原图有环时，直接对它调用 `topological_sort()` 会明确抛出 `ValueError`。
+`bfs_distances(start)` 返回最少边数，因此起点为 `0`；对带权图调用时会忽略权值。
+题目若把起点和终点都计入“访问的节点数”，由调用方对目标距离加 `1`。
+`dijkstra_distances(start)` 用于带权图，按非负权值返回最短距离；两个方法都省略不可达
+节点，起点不存在时抛出 `KeyError`。
 
 ## `utils/` 收录标准
 
