@@ -1,0 +1,8 @@
+復元は一バイトずつ確認する。 repeated blocks make back references useful.
+zero is represented by a three-byte command; ordinary bytes remain literal.
+復元は一バイトずつ確認する。 repeated blocks make back references useful.
+zero is represented by a three-byte command; ordinary bytes remain literal.
+復元は一バイトずつ確認する。 repeated blocks make back references useful.
+zero is represented by a three-byte command; ordinary bytes remain literal.
+復元は一バイトずつ確認する。 repeated blocks make back references useful.
+zero is represented by a three-byte command; ordinary bytes remain literal.

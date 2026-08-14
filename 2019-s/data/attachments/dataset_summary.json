@@ -1,0 +1,67 @@
+{
+  "seed": 20190825,
+  "input_files": {
+    "data1.txt": {
+      "size_bytes": 193,
+      "sha256": "fa7518999b132371405f964d8540538017b72d752495c0af3f84feaaec4002cc"
+    },
+    "data2a.bin": {
+      "size_bytes": 132,
+      "sha256": "b29b2193569e943af962bb16c6faf25160880c337e8ce17da5cf7bfec52a0fd7"
+    },
+    "data2b.bin": {
+      "size_bytes": 267,
+      "sha256": "e3e1f115c7ad6f2264a8d9a211d0d51fed2682bf07f97c156887eaa6e7dfc012"
+    },
+    "data2c.bin": {
+      "size_bytes": 168,
+      "sha256": "1bc564d5d00e681da0e25399b2d1b9a0130c3d23cbfc74cef328488156b5e91a"
+    },
+    "data3a.txt": {
+      "size_bytes": 1141,
+      "sha256": "bc720cc42bc312e400dbfff2d8bdf8f68a2046e3db9811c9afe3b7bbf88ab5a6"
+    },
+    "data3b.png": {
+      "size_bytes": 5114,
+      "sha256": "c31380c9eb3ed91d445bb25c7299594c6534059190914f26236977a83d790a9b"
+    },
+    "data3c.txt": {
+      "size_bytes": 882,
+      "sha256": "b87f21ca72999b0326d0f59df825e2b9b50aaabb3a1b1166aaafa928b206b55a"
+    },
+    "data4.txt": {
+      "size_bytes": 209,
+      "sha256": "f8d661c2527c0c7e785ca1cf8774370d93fa475ddac5d238dd63e89775e6789e"
+    },
+    "data4dict.txt": {
+      "size_bytes": 206,
+      "sha256": "17357e2130a7f94aa1857f7b9f5ed7fdcd3cd291c4edba8f47756adbda3d8d44"
+    },
+    "data5.txt": {
+      "size_bytes": 259,
+      "sha256": "93054405bf3ae07a0f68ccca14ce3c1f7824fece0a6d74cdff19e6eebfc6f7f5"
+    }
+  },
+  "coverage": {
+    "1": "192 six-bit symbols; all 64 mapping characters occur; queried range crosses character boundaries.",
+    "2": "literal bytes, zero commands, short and long non-overlapping back-references; UTF-8 text and a valid RGB TIFF.",
+    "3": "minimum-size dynamic programming on ASCII text, a valid RGB PNG, and UTF-8 text; repeated and incompressible regions.",
+    "4": "three sentences, every dictionary word used, all lower-case letters represented, unique substitution solution.",
+    "5": "ten four-byte chunks; recovered secret exponent and UTF-8/ASCII plaintext."
+  },
+  "restored_question_2": {
+    "data2a.txt": {
+      "size_bytes": 715,
+      "sha256": "f19e3379f9c67e9275a2ab51dee71a4a72cf20e49723d0fa3765b663196a0668"
+    },
+    "data2b.tif": {
+      "size_bytes": 3742,
+      "sha256": "312dab53855ace84197acfd6b75d2902c1c35fd44592722bb5e39ccf59688ec0"
+    },
+    "data2c.txt": {
+      "size_bytes": 656,
+      "sha256": "7b6a17942a0044b3142573fe812a45f6ce84a3166c9caef85233ff14baf01e31"
+    }
+  },
+  "answers_sha256": "2c77c1cc294582c29c0afc6196eaeb9863a350235bba509b729ade1dc08ce5f0"
+}

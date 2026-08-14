@@ -1,0 +1,18 @@
+2019-s reference answers
+
+(1) bits 310..320: 11100000100
+
+(2) restored sizes:
+  data2a.bin -> data2a.txt: 715 bytes
+  data2b.bin -> data2b.tif: 3742 bytes
+  data2c.bin -> data2c.txt: 656 bytes
+
+(3) minimum compressed sizes:
+  data3a.txt -> data3a.bin: 107 bytes
+  data3b.png -> data3b.bin: 5183 bytes
+  data3c.txt -> data3c.bin: 100 bytes
+
+(4) first sentence: quick brown foxes jump over the lazy dog while bright stars guide calm coders.
+
+(5) plaintext: reusable tools make timed coding calmer.
+    p=1848494206319, q=2087560548023, d=7

@@ -1,0 +1,63 @@
+{
+  "1": {
+    "bit_range": [
+      310,
+      320
+    ],
+    "bit_sequence": "11100000100",
+    "encoded_characters": 192,
+    "total_bits": 1152
+  },
+  "2": {
+    "files": {
+      "data2a.bin": {
+        "restored_name": "data2a.txt",
+        "restored_size_bytes": 715,
+        "restored_sha256": "f19e3379f9c67e9275a2ab51dee71a4a72cf20e49723d0fa3765b663196a0668"
+      },
+      "data2b.bin": {
+        "restored_name": "data2b.tif",
+        "restored_size_bytes": 3742,
+        "restored_sha256": "312dab53855ace84197acfd6b75d2902c1c35fd44592722bb5e39ccf59688ec0"
+      },
+      "data2c.bin": {
+        "restored_name": "data2c.txt",
+        "restored_size_bytes": 656,
+        "restored_sha256": "7b6a17942a0044b3142573fe812a45f6ce84a3166c9caef85233ff14baf01e31"
+      }
+    }
+  },
+  "3": {
+    "files": {
+      "data3a.txt": {
+        "compressed_name": "data3a.bin",
+        "original_size_bytes": 1141,
+        "compressed_size_bytes": 107,
+        "compressed_sha256": "1b9b7b57835dcb5bb9b8901a50f35c7fbcc804971883dbd8144569fdcff16dd2"
+      },
+      "data3b.png": {
+        "compressed_name": "data3b.bin",
+        "original_size_bytes": 5114,
+        "compressed_size_bytes": 5183,
+        "compressed_sha256": "ba848c581f8b0ce6c6c5ecf46cb76b9152bdd2d51946f6920df91ba10e24fe01"
+      },
+      "data3c.txt": {
+        "compressed_name": "data3c.bin",
+        "original_size_bytes": 882,
+        "compressed_size_bytes": 100,
+        "compressed_sha256": "652d552af84ca91c45692367bf629c79c5e0b82b023fbae479dddecf57befea7"
+      }
+    }
+  },
+  "4": {
+    "first_sentence": "quick brown foxes jump over the lazy dog while bright stars guide calm coders.",
+    "plaintext": "quick brown foxes jump over the lazy dog while bright stars guide calm coders. practice builds compact tools and clear habits for timed programming exams. reusable helpers reduce mistakes when pressure rises.",
+    "dictionary_words": 32
+  },
+  "5": {
+    "plaintext": "reusable tools make timed coding calmer.",
+    "p": 1848494206319,
+    "q": 2087560548023,
+    "d": 7
+  }
+}

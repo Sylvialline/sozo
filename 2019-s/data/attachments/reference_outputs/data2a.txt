@@ -1,0 +1,10 @@
+restored files must preserve every byte exactly. short repeats, long repeats, and punctuation all matter.
+abcabcabcabc -- abcabcabcabc -- end.
+restored files must preserve every byte exactly. short repeats, long repeats, and punctuation all matter.
+abcabcabcabc -- abcabcabcabc -- end.
+restored files must preserve every byte exactly. short repeats, long repeats, and punctuation all matter.
+abcabcabcabc -- abcabcabcabc -- end.
+restored files must preserve every byte exactly. short repeats, long repeats, and punctuation all matter.
+abcabcabcabc -- abcabcabcabc -- end.
+restored files must preserve every byte exactly. short repeats, long repeats, and punctuation all matter.
+abcabcabcabc -- abcabcabcabc -- end.
