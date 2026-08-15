@@ -61,14 +61,16 @@ python run.py 2025-8 --pattern 'case\d+\.in'
 
 ## Python 考场速查库
 
-现场文档分成三个入口：
+现场文档分成四个入口：
 
 - [`utils/QUICK_REFERENCE.md`](utils/QUICK_REFERENCE.md)：从 `AnswerBook`、`Exam`、
   `Case`、`Series` 到 `@exam.task` 的答案执行与编排速查；
 - [`REFERENCE_PATTERNS.md`](REFERENCE_PATTERNS.md)：按题型场景定位历年 `solve.py`
   中值得复用但不适合抽成通用 API 的参考写法；
 - [`samples/README.md`](samples/README.md)：面向 C++17/STL 使用者的 Python 3 离线
-  示例索引，覆盖语法、标准库、解析、容器、算法、矩阵、调试和完整小任务。
+  示例索引，覆盖语法、标准库、解析、容器、算法、矩阵、调试和完整小任务；
+- [`offline_docs/index.html`](offline_docs/index.html)：与本机版本匹配的 Python、NumPy、
+  SciPy 官方 HTML 文档总入口，可完全离线浏览和搜索。
 
 写题时优先查 `utils` 速查手册来选择运行范式；遇到似曾相识的题型时查历年代码参考
 索引；需要回忆 Python 写法或算法模板时再查 `samples/`。

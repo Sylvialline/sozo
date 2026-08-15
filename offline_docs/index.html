@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Python 科学计算官方离线文档</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+    body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+    h1 { margin-bottom: 4px; }
+    .hint { margin-top: 0; color: #777; }
+    .docs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 28px;
+    }
+    article {
+      border: 1px solid #8886;
+      border-radius: 10px;
+      padding: 18px;
+    }
+    article h2 { margin: 0 0 4px; }
+    article p { margin: 4px 0 14px; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; }
+    a {
+      color: #1769aa;
+      text-underline-offset: 3px;
+    }
+    @media (prefers-color-scheme: dark) {
+      a { color: #7db9e8; }
+      .hint { color: #aaa; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>官方离线文档</h1>
+    <p class="hint">与本机 Python 3.12.7、NumPy 1.26.4、SciPy 1.13.1 环境匹配</p>
+
+    <section class="docs" aria-label="文档入口">
+      <article>
+        <h2>Python 3.12.7</h2>
+        <p>语言、标准库、教程与完整索引。</p>
+        <nav>
+          <a href="python-3.12.7/index.html">首页</a>
+          <a href="python-3.12.7/library/index.html">标准库</a>
+          <a href="python-3.12.7/reference/index.html">语言参考</a>
+          <a href="python-3.12.7/search.html">搜索</a>
+        </nav>
+      </article>
+
+      <article>
+        <h2>NumPy 1.26</h2>
+        <p>对应本机 NumPy 1.26.4。</p>
+        <nav>
+          <a href="numpy-1.26/index.html">首页</a>
+          <a href="numpy-1.26/reference/index.html">API</a>
+          <a href="numpy-1.26/user/index.html">用户指南</a>
+          <a href="numpy-1.26/search.html">搜索</a>
+        </nav>
+      </article>
+
+      <article>
+        <h2>SciPy 1.13.1</h2>
+        <p>API、教程与各子模块说明。</p>
+        <nav>
+          <a href="scipy-1.13.1/index.html">首页</a>
+          <a href="scipy-1.13.1/reference/index.html">API</a>
+          <a href="scipy-1.13.1/tutorial/index.html">教程</a>
+          <a href="scipy-1.13.1/search.html">搜索</a>
+        </nav>
+      </article>
+    </section>
+
+    <p>页面内查找用 <kbd>Ctrl</kbd>+<kbd>F</kbd>；跨页面查找使用各项目的“搜索”。</p>
+  </main>
+</body>
+</html>

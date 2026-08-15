@@ -1,0 +1,80 @@
+# Keep ordinary source and documentation text consistent across platforms.
+# Explicit LF overrides the machine-wide core.autocrlf=true setting.
+* text=auto eol=lf
+
+# Windows command scripts require CRLF in some environments.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Exam source must remain byte-for-byte under the repository owner's control.
+# Keep text diffs, but never let Git rewrite its line endings.
+**/solve.py -text diff
+
+# Test data is part of the problem statement. Preserve its exact bytes while
+# retaining readable diffs for text datasets. Binary rules below take priority.
+**/data/** -text diff
+**/data_old/** -text diff
+
+# Downloaded official documentation is vendored output: preserve it exactly and
+# avoid enormous generated-file diffs. The hand-written entry files remain text.
+offline_docs/python-*/** binary
+offline_docs/numpy-*/** binary
+offline_docs/scipy-*/** binary
+offline_docs/README.md text eol=lf
+offline_docs/index.html text eol=lf
+
+# Common binary assets and offline data formats.
+*.7z binary
+*.bz2 binary
+*.gz binary
+*.tar binary
+*.zip binary
+
+*.bmp binary
+*.gif binary
+*.ico binary
+*.jpeg binary
+*.jpg binary
+*.png binary
+*.tif binary
+*.tiff binary
+*.webp binary
+
+*.mp3 binary
+*.mp4 binary
+*.ogg binary
+*.wav binary
+
+*.eot binary
+*.otf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+
+*.bin binary
+*.db binary
+*.npy binary
+*.npz binary
+*.parquet binary
+*.pickle binary
+*.pkl binary
+*.sqlite binary
+*.sqlite3 binary
+
+*.doc binary
+*.docx binary
+*.pdf binary
+*.ppt binary
+*.pptx binary
+*.xls binary
+*.xlsx binary
+
+*.dll binary
+*.exe binary
+*.pyd binary
+*.pyc binary
+*.so binary
+*.wasm binary
+
+# Sphinx inventory files are compressed binary data despite having no suffix.
+**/objects.inv binary
