@@ -320,6 +320,82 @@ class ExamTests(unittest.TestCase):
                 (4, "DATA"),
             )
 
+    def test_execute_only_runs_selected_decorated_task(self):
+        with TemporaryDirectory() as temp_dir:
+            loaded = []
+
+            def reader(name):
+                loaded.append(name)
+                return name.upper()
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
+            )
+
+            @exam.task(Case("one", files=("one",)))
+            def task1(data):
+                return data
+
+            @exam.task(
+                Case("two.a", files=("two-a",)),
+                Case("two.b", files=("two-b",)),
+            )
+            def task2(data):
+                return data
+
+            book = exam.execute(only=task2, output=None)
+
+            self.assertEqual(loaded, ["two-a", "two-b"])
+            self.assertEqual(list(book.answers), ["two.a", "two.b"])
+            self.assertEqual(book.answers["two.a"]["result"], "TWO-A")
+
+    def test_execute_only_accepts_multiple_tasks(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                str.upper,
+                show_log=False,
+            )
+
+            @exam.task(Case("one", files=("one",)))
+            def task1(data):
+                return data
+
+            @exam.task(Case("two", files=("two",)))
+            def task2(data):
+                return data
+
+            @exam.task(Case("three", files=("three",)))
+            def task3(data):
+                return data
+
+            book = exam.execute(only=(task1, task3), output=None)
+
+            self.assertEqual(list(book.answers), ["one", "three"])
+
+    def test_execute_only_rejects_unregistered_task(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                str,
+                show_log=False,
+            )
+
+            @exam.task(Case("one"))
+            def task1():
+                return 1
+
+            def task2():
+                return 2
+
+            with self.assertRaisesRegex(ValueError, "未注册.*task2"):
+                exam.execute(only=task2, output=None)
+
+            book = exam.execute(only=task1, output=None)
+            self.assertEqual(book.answers["one"]["result"], 1)
+
     def test_series_generates_labels_parameters_and_data_file_names(self):
         with TemporaryDirectory() as temp_dir:
             loaded = []

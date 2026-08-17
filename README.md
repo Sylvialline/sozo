@@ -190,6 +190,15 @@ def task3(data1, data2):
 此时题号由函数名推导，位置参数数量决定每个 case 读取几份文件。装饰器返回原函数，
 因此 task 仍可脱离 `Exam` 单独调用。
 
+只调试某个装饰器 task 时不需要注释其他注册：
+
+```python
+exam.execute(only=task3, output=None)
+```
+
+这会运行 `task3` 注册的全部 case；也可以传 `only=(task1, task3)` 选择多个 task。
+省略 `only` 时仍执行全部任务。
+
 `Case(..., files=("4a", "4b"))` 会按顺序读取指定文件，并把结果追加到
 普通参数后。单项可传 `timeout=5` 覆盖 `Exam` 的类级超时，显式传
 `timeout=None` 可关闭该项限制。`execute()` 默认把答案打印到终端；

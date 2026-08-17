@@ -388,7 +388,25 @@ def task3(left, right):
 只要有普通参数、特殊标签、不同 variant、非标准文件名或自定义超时，就使用
 `@exam.task(...)`，不要勉强依赖推导。
 
-## 8. 可直接套用的完整骨架
+## 8. 只调试指定 task
+
+装饰器可以全部保留，通过 `execute(only=...)` 选择本次要运行的 task：
+
+```python
+exam.execute(only=task3, output=None)
+```
+
+这个调用会执行 `task3` 注册的全部 `Case` / `Series`，其他 task 不读取数据也不运行。
+需要同时检查多个 task 时传入可迭代对象：
+
+```python
+exam.execute(only=(task1, task3), output=None)
+```
+
+`only=None` 是默认值，表示执行全部已注册 task。应直接传装饰器返回的函数对象；传入
+未注册函数会立即报错，避免因为名字写错而静默得到空答案。
+
+## 9. 可直接套用的完整骨架
 
 ```python
 from utils import Case, Exam, Series, read_data
@@ -427,7 +445,10 @@ if __name__ == "__main__":
     exam.execute(output=True)
 ```
 
-## 9. `read_data` 匹配规则
+调试某一题时只需把最后一行临时改成
+`exam.execute(only=task2, output=None)`，不必注释其他 `@exam.task`。
+
+## 10. `read_data` 匹配规则
 
 ```python
 read_data("3a")  # 文件名包含字面字符串 3a
@@ -444,7 +465,7 @@ read_data("")    # data/ 下全部普通文件
 也更容易确认匹配范围。极少数需要正则的情况，先用 `read_data("")` 取得字典，再在自定义
 reader 中用 `re.fullmatch` 或 `re.search` 过滤即可。
 
-## 10. 常见错误速查
+## 11. 常见错误速查
 
 | 现象 | 检查 |
 | --- | --- |
@@ -457,4 +478,6 @@ reader 中用 `re.fullmatch` 或 `re.search` 过滤即可。
 | parser 收到字典 | 不会；映射会递归处理，parser 只接收叶子值 |
 | 超时模式启动失败 | task、reader、parser、参数、返回值保持可 pickle，入口加 `__main__` guard |
 | bare `@exam.task` 推导错误 | 改用 `@exam.task(Case(...))` 或 `@exam.task(Series(...))` |
+| 只想调试一个 task | 保留所有装饰器，调用 `exam.execute(only=task1, output=None)` |
+| `only` 报未注册 task | 直接传被当前 `exam` 装饰或 `add` 过的函数对象 |
 | 没有生成文件 | `execute()` 默认打印；写文件要用 `output=True` |

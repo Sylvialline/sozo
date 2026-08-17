@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from functools import partial
@@ -364,10 +364,53 @@ class Exam:
 
         return decorator
 
-    def _validate_labels(self) -> None:
+    def _select_entries(
+        self,
+        only: Callable[..., Any] | Iterable[Callable[..., Any]] | None,
+    ) -> list[tuple[Callable[..., Any], Case]]:
+        if only is None:
+            return self._entries
+
+        if callable(only):
+            selected = (only,)
+        else:
+            try:
+                selected = tuple(only)
+            except TypeError as error:
+                raise TypeError(
+                    "only 必须是已注册的 task、task 可迭代对象或 None"
+                ) from error
+            if not selected:
+                raise ValueError("only 至少需要一个 task；传 None 执行全部")
+            if any(not callable(task) for task in selected):
+                raise TypeError("only 中的每一项都必须是已注册的 task")
+
+        registered = tuple(task for task, _ in self._entries)
+        missing = tuple(
+            task
+            for task in selected
+            if not any(task is registered_task for registered_task in registered)
+        )
+        if missing:
+            names = ", ".join(
+                getattr(task, "__name__", repr(task))
+                for task in missing
+            )
+            raise ValueError(f"only 中包含未注册的 task: {names}")
+
+        return [
+            (task, case)
+            for task, case in self._entries
+            if any(task is selected_task for selected_task in selected)
+        ]
+
+    @staticmethod
+    def _validate_labels(
+        entries: Iterable[tuple[Callable[..., Any], Case]],
+    ) -> None:
         seen: set[str] = set()
         duplicates: list[str] = []
-        for _, case in self._entries:
+        for _, case in entries:
             if case.label in seen and case.label not in duplicates:
                 duplicates.append(case.label)
             seen.add(case.label)
@@ -378,16 +421,18 @@ class Exam:
     def execute(
         self,
         *,
+        only: Callable[..., Any] | Iterable[Callable[..., Any]] | None = None,
         output: str | Path | bool | None | _PrintToStdout = _PRINT_TO_STDOUT,
         indent: int | None = 2,
         inline_simple_lists: bool = True,
     ) -> AnswerBook:
         if self._executed:
             raise RuntimeError("Exam 不能重复执行")
-        self._validate_labels()
+        entries = self._select_entries(only)
+        self._validate_labels(entries)
         self._executed = True
 
-        for task, case in self._entries:
+        for task, case in entries:
             reader = (
                 self.reader
                 if case.reader is INHERIT
