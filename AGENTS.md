@@ -23,3 +23,19 @@ when requested. Prefer:
 - visible failures over silent fallback behavior;
 - optimizations that reduce total exam workflow time, including answer lookup
   and transcription, not only algorithm runtime.
+
+## Skill synchronization
+
+Treat `workflow/skills/` as the canonical, version-controlled source for every
+Codex skill used by this repository's training workflow.
+
+- Mirror every skill addition, edit, rename, or deletion to
+  `workflow/skills/` in the same task, including `SKILL.md`, `agents/`,
+  `references/`, `scripts/`, and `assets/`.
+- Never leave a skill change only in a machine-local Codex skills directory.
+- When the repository copy and an installed copy differ, preserve both long
+  enough to inspect the diff, then make the repository copy canonical and
+  synchronize the installed copy from it.
+- After cloning or pulling on another computer, synchronize the repository
+  copies into that computer's Codex skills directory before using or editing
+  them.
