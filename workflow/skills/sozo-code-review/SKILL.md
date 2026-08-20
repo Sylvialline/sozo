@@ -20,6 +20,15 @@ Apply it in two directions:
 
 Read repository instructions such as `AGENTS.md` before reviewing. Treat every protected exam source rule as binding. In this repository, never create, edit, reformat, move, rename, delete, stage, or commit any `solve.py`; only read and review it. The owner must apply proposed changes personally.
 
+## Keep utility-facing language consistent
+
+When creating or extending reusable APIs under `utils`, write concise Chinese
+docstrings for newly added public modules, classes, and functions. Document the
+contract or important convention instead of repeating the symbol name. Keep
+runtime `print` and logging messages in English so console output remains easy
+to scan across environments. Do not rewrite existing utilities solely to apply
+this convention retroactively.
+
 ## Keep the review static
 
 Never execute the reviewed code or use execution to infer correctness. Do not:
