@@ -11,10 +11,6 @@ DATA = HERE / "data"
 OUTPUT = HERE / "output"
 OUTPUT.mkdir(exist_ok=True)
 
-log_file = Path("test.log").open("w", encoding="utf-8")
-def debug(s):
-    print(s, file=log_file)
-
 from utils import Case, Exam, read_data
 
 def parse_default(data: str) -> str | list[str]:

@@ -5,9 +5,11 @@
 
 | 遇到的情况 | 参考实现 | 重点查看 | 可以借鉴 |
 | --- | --- | --- | --- |
-| 题目用“单元格 + 墙坐标”描述方格迷宫 | [`2022-8/solve.py:29`](2022-8/solve.py#L29) | `MOVES`、`cell2wall`、`all_walls`、`Maze` | 墙坐标编码、由墙集合构造无向图、边界墙生成 |
-| 状态同时包含位置和朝向，需要模拟左手贴墙行走 | [`2022-8/solve.py:315`](2022-8/solve.py#L315) | `Status`、`navigate` | 用不可变状态表示位置与朝向、转向和单步状态转移 |
+| 题目用“单元格 + 墙坐标”描述方格迷宫 | [`2022-8/solve.py:24`](2022-8/solve.py#L24) | `MOVES`、`cell2wall`、`all_walls`、`Maze` | 墙坐标编码、由墙集合构造无向图、边界墙生成 |
+| 状态同时包含位置和朝向，需要模拟左手贴墙行走 | [`2022-8/solve.py:310`](2022-8/solve.py#L310) | `Status`、`navigate` | 用不可变状态表示位置与朝向、转向和单步状态转移 |
 | 有向图需要 SCC 缩点后按 DAG 顺序计算 | [`2023-8/solve.py:114`](2023-8/solve.py#L114) | `Graph.compress`、`Graph.top_sort`；通用接口见 [`utils/graph.py:338`](utils/graph.py#L338) | 原节点与分量映射、凝缩图上的动态规划顺序 |
+| 需要分解较大的整数，环境中可以使用第三方包 | [`2019-s/solve.py:248`](2019-s/solve.py#L248) | `recover_d_by_factorization`、`primefac` | 用 `primefac(n)` 获取质因数，再根据题目关系恢复所需参数 |
+| 输入或输出包含二进制文件，需要由 task 手动控制文件 I/O | [`2019-s/solve.py:99`](2019-s/solve.py#L99)、[`2019-s/solve.py:113`](2019-s/solve.py#L113) | `task2`、`task3`、`DATA`、`OUTPUT` | 用 `Case` 传递输入/输出文件名，在 task 内调用 `read_bytes`、`write_bytes` 并返回答案元数据 |
 
 新增条目时优先记录“什么情况下应该来查”，并把函数名或类名写入“重点查看”；只有跨题
 稳定、调用比重写更省事的模式才进一步提炼进 `utils`。

@@ -66,9 +66,25 @@ Do not continue into problem-specific analysis after that warning.
 
 ## Review in priority order
 
-### 1. Structure for timed work
+### 1. Problem-local subsystem architecture
 
-Check whether the main flow reads naturally from top to bottom. Recommend extracting repeated or conceptually separate logic only when it reduces exam-time cognitive load. Inline tiny helpers that obscure rather than clarify. Reject production-style layers, defensive scaffolding, and abstraction that cost more to remember than to rewrite.
+For each nontrivial problem, identify the concrete subsystem built to solve it
+and assess that subsystem's architecture. Focus on responsibility boundaries,
+state ownership, data flow, mutation and rollback invariants, helper APIs, and
+whether the chosen model makes the problem easier to reason about. Examples
+include an encoder/decoder pair, a parser/interpreter, a search engine with
+reversible state, a simulation model, or a graph-processing pipeline.
+
+Do not treat the ordinary ordering of independent `task1`, `task2`, and later
+solutions as a meaningful architecture finding. Do not spend the architecture
+section on `Exam`, answer orchestration, input utilities, or other repository
+infrastructure unless the user asks about them or they materially shape the
+problem-local subsystem under review.
+
+Recommend extracting, merging, or moving responsibilities only when it reduces
+exam-time cognitive load. Inline tiny helpers that obscure rather than clarify.
+Reject production-style layers, defensive scaffolding, and abstraction that
+cost more to remember than to rewrite.
 
 ### 2. Natural Python
 
@@ -157,10 +173,18 @@ Highlight readable language features, built-ins, and standard-library idioms. St
 
 ### 3. 架构与组织
 
-Assess main-flow clarity, function boundaries, data structures, naming, and
-which abstractions to retain or remove from an exam-workflow perspective.
-Include a compact old-name → suggested-name table when naming changes would
-materially reduce hesitation or ambiguity.
+Organize this section by concrete problem or subsystem. Assess its division of
+responsibilities, state representation and ownership, data flow, mutation and
+rollback boundaries, helper interfaces, and which abstractions to retain,
+merge, or remove. For coupled components such as encoder/decoder pairs or
+search state/search procedure, discuss the architecture of the whole system,
+not just isolated functions.
+
+Do not use the file's top-to-bottom task order or its `Exam` registration as an
+architecture observation by default. Discuss repository utilities here only
+when the user explicitly wants infrastructure feedback. Include a compact
+old-name → suggested-name table when naming changes would materially reduce
+hesitation or ambiguity inside the subsystem.
 
 ### 4. 值得加入 utils 的内容
 
