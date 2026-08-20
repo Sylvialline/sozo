@@ -237,7 +237,11 @@ book.write_json()  # 写入调用代码同级的 answer.json
 JSON 默认保持对象结构的换行缩进，但 `[1, 2, 3]` 这类仅含简单值的一维数组
 会留在单行，矩阵和对象数组仍按层级展开。需要完全采用标准缩进时，可传
 `book.dumps(inline_simple_lists=False)`；`print_json()` 和 `write_json()`
-也接受同名参数。
+也接受同名参数。输出前会递归转换常见的非 JSON 类型，包括 `set`、`frozenset`、
+dataclass、Enum、Path、日期时间、Decimal、迭代器，以及 NumPy 标量和数组；集合会按
+稳定顺序输出，普通容器不会在 `book.answers` 中被替换。一次性迭代器会在输出时被
+消费并转成数组。自定义对象可实现 `__json__()`，返回任意可继续转换的对象。仍无法
+转换的对象会明确抛出 `TypeError`，不会被静默写成含糊的字符串。
 
 ## `read_data()` 快速读取数据
 
@@ -258,6 +262,21 @@ all_data = read_data("")  # 读取 data/ 下全部普通文件
 空字符串按包含语义匹配所有文件。匹配是区分大小写的字面包含而不是正则；文件按文件名
 排序，并使用 UTF-8 解码。复杂正则筛选可在 `read_data("")` 返回的字典上自行完成，
 无需让日常文件名承担正则特殊字符风险。
+
+## 正因子与因子对
+
+`divisors(n)` 返回升序正因子，`factor_pairs(n)` 默认只返回第一项不大于第二项的
+因子对。需要同时枚举 `(a, b)` 和 `(b, a)` 时传入 `include_swapped=True`：
+
+```python
+from utils import divisors, factor_pairs
+
+divisors(12)  # [1, 2, 3, 4, 6, 12]
+factor_pairs(12)  # [(1, 12), (2, 6), (3, 4)]
+factor_pairs(12, include_swapped=True)
+```
+
+两个函数都要求 `n` 为正整数，并正确去除完全平方数平方根位置的重复项。
 
 ## `Graph`：显式节点集、BFS、缩点与拓扑排序
 

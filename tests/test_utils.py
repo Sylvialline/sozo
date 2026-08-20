@@ -3,6 +3,10 @@ import pickle
 import time
 import unittest
 from contextlib import redirect_stderr
+from dataclasses import dataclass
+from datetime import date, timedelta
+from decimal import Decimal
+from enum import Enum
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -16,6 +20,8 @@ from utils import (
     Graph,
     Input,
     Series,
+    divisors,
+    factor_pairs,
     read_data,
     read_files,
 )
@@ -249,6 +255,115 @@ class AnswerBookTests(unittest.TestCase):
 
             self.assertIn('"vector": [\n', output)
             self.assertEqual(json.loads(output), book.answers)
+
+    def test_json_output_converts_common_non_json_types_recursively(self):
+        class Status(Enum):
+            DONE = "done"
+
+        @dataclass
+        class Point:
+            x: int
+            tags: set[str]
+
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            book = self._make_book(root)
+            book.answers = {
+                "case": {
+                    "set": {3, 1, 2},
+                    "frozen": frozenset({"b", "a"}),
+                    "point": Point(4, {"right", "left"}),
+                    "status": Status.DONE,
+                    "path": root / "result.txt",
+                    "date": date(2026, 8, 20),
+                    "duration": timedelta(seconds=2.5),
+                    "decimal": Decimal("1.2300"),
+                    "iterator": iter((5, 6)),
+                }
+            }
+
+            restored = json.loads(book.dumps())
+
+            self.assertEqual(restored["case"]["set"], [1, 2, 3])
+            self.assertEqual(restored["case"]["frozen"], ["a", "b"])
+            self.assertEqual(
+                restored["case"]["point"],
+                {"x": 4, "tags": ["left", "right"]},
+            )
+            self.assertEqual(restored["case"]["status"], "done")
+            self.assertEqual(
+                restored["case"]["path"],
+                str(root / "result.txt"),
+            )
+            self.assertEqual(restored["case"]["date"], "2026-08-20")
+            self.assertEqual(restored["case"]["duration"], 2.5)
+            self.assertEqual(restored["case"]["decimal"], "1.2300")
+            self.assertEqual(restored["case"]["iterator"], [5, 6])
+            self.assertIsInstance(book.answers["case"]["set"], set)
+
+    def test_json_output_supports_numpy_scalars_arrays_and_keys(self):
+        try:
+            import numpy as np
+        except ModuleNotFoundError:
+            self.skipTest("NumPy 未安装")
+
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+            book.answers = {
+                "case": {
+                    "integer": np.int64(7),
+                    "floating": np.float32(1.5),
+                    "boolean": np.bool_(True),
+                    "array": np.array([[1, 2], [3, 4]], dtype=np.int64),
+                    "mapping": {np.int64(9): np.int64(10)},
+                }
+            }
+
+            restored = json.loads(book.dumps())
+
+            self.assertEqual(restored["case"]["integer"], 7)
+            self.assertEqual(restored["case"]["floating"], 1.5)
+            self.assertIs(restored["case"]["boolean"], True)
+            self.assertEqual(restored["case"]["array"], [[1, 2], [3, 4]])
+            self.assertEqual(restored["case"]["mapping"], {"9": 10})
+
+    def test_json_protocol_handles_custom_objects_and_rejects_unknown_ones(self):
+        class Custom:
+            def __json__(self):
+                return {"values": {2, 1}}
+
+        class Unknown:
+            pass
+
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+            book.answers = {"case": {"custom": Custom()}}
+            self.assertEqual(
+                json.loads(book.dumps()),
+                {"case": {"custom": {"values": [1, 2]}}},
+            )
+
+            book.answers = {"case": {"unknown": Unknown()}}
+            with self.assertRaisesRegex(TypeError, "Unknown.*不能序列化"):
+                book.dumps()
+
+    def test_json_output_still_rejects_circular_references(self):
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+            circular = []
+            circular.append(circular)
+            book.answers = {"case": circular}
+
+            with self.assertRaisesRegex(ValueError, "Circular reference"):
+                book.dumps()
+
+    def test_json_output_rejects_keys_that_collapse_to_the_same_string(self):
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+            book.answers = {"case": {1: "number", "1": "string"}}
+
+            with self.assertRaisesRegex(ValueError, "键在转换后发生冲突"):
+                book.dumps()
 
 
 class ExamTests(unittest.TestCase):
@@ -837,6 +952,26 @@ class ExamTests(unittest.TestCase):
                 inline_simple_lists=False,
             )
 
+    def test_execute_writes_non_json_task_results_through_compatibility_layer(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            exam = self._make_exam(
+                root,
+                str,
+                show_log=False,
+            )
+            exam.add(lambda: {"values": {3, 1, 2}}, Case("case"))
+
+            exam.execute(output="answers.json")
+
+            restored = json.loads(
+                (root / "answers.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                restored["case"]["result"],
+                {"values": [1, 2, 3]},
+            )
+
     def test_reader_and_parser_run_inside_answer_book_timing(self):
         with TemporaryDirectory() as temp_dir:
             events = []
@@ -1210,6 +1345,36 @@ class DSUTests(unittest.TestCase):
     def test_rejects_negative_size(self):
         with self.assertRaises(ValueError):
             DSU(-1)
+
+
+class MathExtTests(unittest.TestCase):
+    def test_divisors_are_sorted_and_do_not_repeat_square_root(self):
+        self.assertEqual(divisors(1), [1])
+        self.assertEqual(
+            divisors(36),
+            [1, 2, 3, 4, 6, 9, 12, 18, 36],
+        )
+
+    def test_factor_pairs_can_include_swapped_orientations(self):
+        self.assertEqual(
+            factor_pairs(36),
+            [(1, 36), (2, 18), (3, 12), (4, 9), (6, 6)],
+        )
+        self.assertEqual(
+            factor_pairs(12, include_swapped=True),
+            [(1, 12), (2, 6), (3, 4), (4, 3), (6, 2), (12, 1)],
+        )
+
+    def test_factor_helpers_require_a_positive_integer(self):
+        for value in (0, -1):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    divisors(value)
+
+        for value in (True, 2.5, "12"):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    factor_pairs(value)
 
 
 if __name__ == "__main__":

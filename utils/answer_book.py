@@ -4,12 +4,18 @@ import json
 import math
 import sys
 import traceback
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import fields, is_dataclass
+from datetime import date, datetime, time, timedelta
+from decimal import Decimal
+from enum import Enum
 from multiprocessing import get_context
 from multiprocessing.connection import Connection
+from numbers import Integral, Real
 from pathlib import Path
 from time import perf_counter
 from typing import Any
+from uuid import UUID
 
 from ._caller import caller_directory
 
@@ -17,22 +23,128 @@ from ._caller import caller_directory
 _PROCESS_START_TIMEOUT = 30.0
 
 
-def _json_key(key: Any) -> str:
+def _type_name(value: Any) -> str:
+    value_type = type(value)
+    return f"{value_type.__module__}.{value_type.__qualname__}"
+
+
+def _json_key_value(key: Any) -> str:
     if isinstance(key, str):
-        value = key
-    elif key is None:
-        value = "null"
-    elif key is True:
-        value = "true"
-    elif key is False:
-        value = "false"
-    elif isinstance(key, (int, float)):
-        value = json.dumps(key)
-    else:
+        return key
+    if key is None:
+        return "null"
+    if key is True:
+        return "true"
+    if key is False:
+        return "false"
+    if isinstance(key, (int, float)):
+        return json.dumps(key)
+    raise TypeError("JSON 对象的键必须是 str、int、float、bool 或 None")
+
+
+def _to_jsonable(value: Any) -> Any:
+    """Return a JSON-compatible copy of an answer tree."""
+    seen: set[int] = set()
+
+    def convert(item: Any) -> Any:
+        if isinstance(item, Enum):
+            return convert(item.value)
+        if item is None or isinstance(item, (str, bool, int, float)):
+            return item
+        if isinstance(item, Integral):
+            return int(item)
+        if isinstance(item, Real):
+            return float(item)
+        if isinstance(item, Decimal):
+            return str(item)
+        if isinstance(item, (Path, UUID)):
+            return str(item)
+        if isinstance(item, (datetime, date, time)):
+            return item.isoformat()
+        if isinstance(item, timedelta):
+            return item.total_seconds()
+        if isinstance(item, (bytes, bytearray, memoryview)):
+            return list(item)
+
+        marker = id(item)
+        if marker in seen:
+            raise ValueError("Circular reference detected")
+
+        seen.add(marker)
+        try:
+            if isinstance(item, Mapping):
+                converted: dict[Any, Any] = {}
+                encoded_keys: set[str] = set()
+                for key, child in item.items():
+                    converted_key = convert(key)
+                    if not (
+                        converted_key is None
+                        or isinstance(
+                            converted_key,
+                            (str, bool, int, float),
+                        )
+                    ):
+                        raise TypeError(
+                            "JSON 对象的键转换后必须是 "
+                            "str、int、float、bool 或 None，"
+                            f"实际为 {_type_name(converted_key)}"
+                        )
+                    encoded_key = _json_key_value(converted_key)
+                    if encoded_key in encoded_keys:
+                        raise ValueError(
+                            "JSON 对象的键在转换后发生冲突: "
+                            f"{encoded_key!r}"
+                        )
+                    encoded_keys.add(encoded_key)
+                    converted[converted_key] = convert(child)
+                return converted
+
+            if is_dataclass(item) and not isinstance(item, type):
+                return {
+                    field.name: convert(getattr(item, field.name))
+                    for field in fields(item)
+                }
+
+            if isinstance(item, (set, frozenset)):
+                members = [convert(child) for child in item]
+                return sorted(
+                    members,
+                    key=lambda child: json.dumps(
+                        child,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                )
+
+            if isinstance(item, (list, tuple)):
+                return [convert(child) for child in item]
+
+            for method_name in (
+                "__json__",
+                "tolist",
+                "item",
+                "to_dict",
+            ):
+                method = getattr(item, method_name, None)
+                if callable(method):
+                    return convert(method())
+
+            if isinstance(item, Iterable):
+                return [convert(child) for child in item]
+        finally:
+            seen.remove(marker)
+
         raise TypeError(
-            "JSON 对象的键必须是 str、int、float、bool 或 None"
+            f"{_type_name(item)} 不能序列化为 JSON；"
+            "请返回 JSON 基础类型，或提供 __json__()、tolist()、"
+            "item()、to_dict() 之一"
         )
-    return json.dumps(value, ensure_ascii=False)
+
+    return convert(value)
+
+
+def _json_key(key: Any) -> str:
+    return json.dumps(_json_key_value(key), ensure_ascii=False)
 
 
 def _is_json_scalar(value: Any) -> bool:
@@ -387,9 +499,10 @@ class AnswerBook:
         indent: int | None = 2,
         inline_simple_lists: bool = True,
     ) -> str:
+        answers = _to_jsonable(self.answers)
         if indent is not None and inline_simple_lists:
-            return _pretty_json(self.answers, indent)
-        return json.dumps(self.answers, ensure_ascii=False, indent=indent)
+            return _pretty_json(answers, indent)
+        return json.dumps(answers, ensure_ascii=False, indent=indent)
 
     def print_json(
         self,

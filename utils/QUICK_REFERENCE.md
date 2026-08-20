@@ -85,6 +85,11 @@ book.print_json(inline_simple_lists=False)
 book.write_json(indent=None)  # 紧凑 JSON
 ```
 
+task 可直接返回 `set`、`frozenset`、dataclass、Enum、Path、日期时间、Decimal、
+迭代器、NumPy 标量或数组，输出时会递归转成 JSON 可处理的数据。集合会稳定排序；
+一次性迭代器会被消费。自定义类型可实现 `__json__()` 返回可转换对象。未知类型仍会
+抛出 `TypeError`，便于及时发现遗漏。
+
 ## 2. `Exam`：统一读取、执行和输出
 
 `Exam` 把输入读取也纳入 `AnswerBook` 的计时、异常和超时边界。
