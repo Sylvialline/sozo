@@ -10,7 +10,6 @@ from unittest.mock import Mock, patch
 
 from utils import (
     AnswerBook,
-    BatchIO,
     Case,
     DSU,
     Exam,
@@ -1015,40 +1014,6 @@ class ReadFilesTests(unittest.TestCase):
                 read_files(str(root / "input.txt"), base_dir=root)
             with self.assertRaises(ValueError):
                 read_files("../input.txt", base_dir=root)
-
-
-class BatchIOAnswerTests(unittest.TestCase):
-    def test_selects_answer_without_running_later_code(self):
-        events = []
-
-        def answers():
-            events.append("first")
-            yield [1, 2, 3]
-            events.append("second")
-            yield (4, 5)
-            events.append("must not run")
-            yield 6
-
-        runner = BatchIO(".", answer_index=2)
-
-        self.assertEqual(runner._format_result(answers()), "(4, 5)")
-        self.assertEqual(events, ["first", "second"])
-
-    def test_answer_requires_iterator(self):
-        runner = BatchIO(".", answer_index=1)
-
-        with self.assertRaisesRegex(TypeError, "迭代器或生成器"):
-            runner._format_result([1, 2, 3])
-
-    def test_reports_missing_answer(self):
-        runner = BatchIO(".", answer_index=2)
-
-        with self.assertRaisesRegex(IndexError, "第 2 个答案"):
-            runner._format_result(iter(["only"]))
-
-    def test_rejects_non_positive_answer_index(self):
-        with self.assertRaises(ValueError):
-            BatchIO(".", answer_index=0)
 
 
 class GraphTests(unittest.TestCase):

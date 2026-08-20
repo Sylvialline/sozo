@@ -1,6 +1,15 @@
 import heapq
+import sys
+from itertools import islice
+from pathlib import Path
 from typing import List
-from utils import DSU
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from utils import DSU, Exam, Series, read_data
+
+exam = Exam(reader=read_data)
 
 DIRECTIONS = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
@@ -140,7 +149,7 @@ class LineSegment(Shape):
         res = list(map(is_in, l))
         return max(res) == 1 and min(res) == -1
 
-def solve(data: str):
+def answers(data: str):
     it = map(int, data.split(','))
     shapes: List[Shape] = []
     cnt = [0, 0, 0]
@@ -180,3 +189,42 @@ def solve(data: str):
     yield canvas.count(0), canvas.count(1)
     yield canvas.largest_component()
     yield canvas.min_path(box)
+
+
+def select_answer(data: str, index: int):
+    stream = answers(data)
+    try:
+        return next(islice(stream, index - 1, index))
+    except StopIteration as error:
+        raise IndexError(f"没有生成第 {index} 个答案") from error
+    finally:
+        stream.close()
+
+
+@exam.task
+def task1(data):
+    return select_answer(data, 1)
+
+
+@exam.task
+def task2(data):
+    return select_answer(data, 2)
+
+
+@exam.task
+def task3(data):
+    return select_answer(data, 3)
+
+
+@exam.task
+def task4(data):
+    return select_answer(data, 4)
+
+
+@exam.task(Series("5", "abcd"))
+def task5(data):
+    return select_answer(data, 5)
+
+
+if __name__ == "__main__":
+    exam.execute()

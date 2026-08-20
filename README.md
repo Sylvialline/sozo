@@ -14,7 +14,7 @@
 - 自动化工具可以读取、运行、计时、测试和评审 `solve.py`，但不得创建、编辑、
   格式化、移动、重命名或删除它。
 - 修改建议写在对话或独立的 `notes.md` 中，再由仓库所有者亲自实施。
-- `run.py`、`utils/`、编辑器任务、文档和测试工具属于考前准备的基础设施，可以
+- `utils/`、`workflow/`、编辑器任务、文档和测试工具属于考前准备的基础设施，可以
   持续维护和扩充。
 
 这条边界也记录在根目录的 `AGENTS.md` 中，供后续自动化会话读取。
@@ -40,24 +40,30 @@
 在项目根目录执行：
 
 ```powershell
-# 运行题目目录中的全部 data*.txt
-python run.py 2025-8 --time
-
-# 只运行文件名包含 3a 或 5c 的数据
-python run.py 2025-8 --only '3a|5c'
-
-# 只运行 data3*，并且只取得 solve() 生成的第 3 个答案
-python run.py 2025-8 --only '^data3' --answer 3 --time
-
-# 把答案写入题目目录下的 output/
-python run.py 2025-8 --out output
-
-# 使用其他文件名规则；正则采用完整匹配
-python run.py 2025-8 --pattern 'case\d+\.in'
+# 运行题解中注册的全部 Exam task
+python -u .\2025-8\solve.py
 ```
+
+只运行特定任务时，在题解末尾使用 `exam.execute(only=task3)`；写入同级
+`answer.json` 时使用 `exam.execute(output=True, only=task3)`。`Exam` 负责题组选择、
+数据读取、计时、日志和答案输出。
 
 在 VS Code 中打开某个题目的 `solve.py` 后，也可以按
 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 运行当前题目的全部数据。
+
+算法已经来不及优化、纯 Python 长任务需要尝试 PyPy 时，使用同一个仓库启动器：
+
+```powershell
+# 直接运行使用 Exam / AnswerBook 的题解
+python .\workflow\run_python.py pypy .\2019-s\solve.py
+
+# 同一题解切换到 PyPy
+python .\workflow\run_python.py pypy .\2025-8\solve.py
+```
+
+安装、CPython/PyPy 对比、适用边界和超时注意事项见
+[`workflow/PYPY.md`](workflow/PYPY.md)。默认工作流仍使用 CPython；PyPy 是经过本题
+实测后再启用的应急运行时。
 
 ## Python 考场速查库
 
@@ -77,42 +83,11 @@ python run.py 2025-8 --pattern 'case\d+\.in'
 
 ```powershell
 python samples/00_quick_reference/cpp_to_python_stl.py
-python samples/12_exam_workflows/full_exam_template.py
 python samples/run_all_samples.py
 ```
 
 当前目录 `2025-8` 保持原位，因为自动移动目录会连带移动受保护的 `solve.py`。
 新题目建议使用零补齐的 `YYYY-MM` 命名；是否统一旧目录由仓库所有者决定并亲自操作。
-
-## `solve()` 接口
-
-基础形式保持为单参数，不向问题代码引入文件名路由：
-
-```python
-def solve(data: str):
-    ...
-    return answer
-```
-
-多问问题可以使用生成器，让答案按照题号依次产生：
-
-```python
-def solve(data: str):
-    ...
-    yield answer_1
-    ...
-    yield answer_2
-```
-
-`--answer N` 使用从 1 开始的编号，只适用于返回迭代器或生成器的 `solve()`。runner
-会执行到第 `N` 个 `yield`，取得并输出该答案，然后关闭生成器；第 `N` 个 `yield`
-之后的代码不会执行。不指定该参数时，runner 会像以前一样消费并输出全部结果。
-
-`--answer` 不会分析文件名，也不会改变 `solve(data)` 的接口。文件筛选和答案筛选是
-两个独立操作：
-
-- `--only` 决定运行哪些数据文件；
-- `--answer` 决定消费第几个生成结果。
 
 ## 目录职责
 
@@ -121,7 +96,7 @@ def solve(data: str):
 ├── AGENTS.md          # solve.py 的保护规则
 ├── README.md          # 仓库理念和现场用法
 ├── REFERENCE_PATTERNS.md # 历年题解中的参考型代码索引
-├── run.py             # 稳定的批量运行入口
+├── workflow/          # 运行时启动器、PyPy 手册与跨电脑 skill 资产
 ├── samples/           # Python 考场速查、完整示例与批量自检
 ├── utils/             # 已验证的通用模块及 QUICK_REFERENCE.md
 └── YYYY-MM/
@@ -354,12 +329,14 @@ weighted_dist = wg.dijkstra_distances("a")  # 按非负权值计算
 ```powershell
 python --version
 python -m unittest discover -s tests -v
-python run.py 2025-8 --only '^data1' --answer 1 --time
+python -u .\2025-8\solve.py
+python .\workflow\run_python.py pypy .\workflow\run_python.py --help
 ```
 
 同时确认：
 
 - `python` 命令和 VS Code 默认任务可以直接运行；
+- 仓库启动器能够找到已解压的 PyPy，并显示所选解释器；
 - 仓库、解释器和所需资料均位于本机；
 - `utils` 没有未安装的第三方依赖；
 - 常用命令不依赖 shell 历史或网络搜索；

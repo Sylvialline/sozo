@@ -15,7 +15,7 @@
 
 ```powershell
 python samples/00_quick_reference/cpp_to_python_stl.py
-python samples/12_exam_workflows/full_exam_template.py
+python samples/07_algorithms/dijkstra.py
 python samples/run_all_samples.py
 ```
 
@@ -58,10 +58,12 @@ python samples/run_all_samples.py --pattern 13_example_tasks --show-output
    [`04_standard_formats/`](04_standard_formats/)：按题目数据格式选择解析方式。
 4. [`05_containers/`](05_containers/) 至 [`09_matrices_and_sparse_data/`](09_matrices_and_sparse_data/)：
    用文件名直接寻找容器或算法。
-5. [`12_exam_workflows/`](12_exam_workflows/)：熟悉完整考试执行流程。
-6. [`13_example_tasks/`](13_example_tasks/)：查看多个模块如何组合成完整小任务。
-7. [`10_object_oriented/`](10_object_oriented/)、
+5. [`13_example_tasks/`](13_example_tasks/)：查看多个模块如何组合成完整小任务。
+6. [`10_object_oriented/`](10_object_oriented/)、
    [`11_debugging_and_testing/`](11_debugging_and_testing/)：按需补充。
+
+仓库实际考试执行流程统一使用
+[`Exam` / `AnswerBook`](../utils/QUICK_REFERENCE.md)，不在示例库中维护第二套运行框架。
 
 ## 按场景查找
 
@@ -79,9 +81,7 @@ python samples/run_all_samples.py --pattern 13_example_tasks --show-output
 | 在终端输入和文件输入间切换 | [`switch_file_and_terminal.py`](01_input_output/switch_file_and_terminal.py) |
 | 临时替换并恢复 `sys.stdin` | [`redirect_stdin_temporarily.py`](01_input_output/redirect_stdin_temporarily.py) |
 | 区分脚本目录和当前工作目录 | [`resolve_script_relative_path.py`](01_input_output/resolve_script_relative_path.py) |
-| 用 `yield` 逐行产生答案 | [`generator_solver.py`](12_exam_workflows/generator_solver.py) |
-| 输出到终端、单独文件或总文件 | [`full_exam_template.py`](12_exam_workflows/full_exam_template.py) |
-| 失败后继续批处理 | [`continue_after_file_error.py`](12_exam_workflows/continue_after_file_error.py) |
+| 编排题组、输出答案和处理失败 | [`Exam` / `AnswerBook`](../utils/QUICK_REFERENCE.md) |
 | 处理 CSV、JSON、JSON Lines | [`04_standard_formats/`](04_standard_formats/) |
 | 用正则或 tokenizer 解析混合文本 | [`03_text_parsing/`](03_text_parsing/) |
 | 写矩阵、COO、CSR 或稀疏数据 | [`09_matrices_and_sparse_data/`](09_matrices_and_sparse_data/) |
@@ -97,8 +97,6 @@ python samples/run_all_samples.py --pattern 13_example_tasks --show-output
 | 文件 | 用途 |
 |---|---|
 | [`cpp_to_python_stl.py`](00_quick_reference/cpp_to_python_stl.py) | 集中速查 C++17/STL 到 Python 的容器、算法和复杂度对应 |
-| [`full_exam_template.py`](12_exam_workflows/full_exam_template.py) | 演示筛选输入、批量执行、容错、计时和多种输出方式 |
-| [`io_runner.py`](15_utils/io_runner.py) | 完整考试模板使用的可复用批处理基础设施 |
 | [`run_all_samples.py`](run_all_samples.py) | 在独立进程中批量验证示例，可用 `--pattern` 缩小范围 |
 
 ## 目录总索引
@@ -117,10 +115,9 @@ python samples/run_all_samples.py --pattern 13_example_tasks --show-output
 | [`09_matrices_and_sparse_data`](09_matrices_and_sparse_data/) | 稠密矩阵、COO、CSR、转换、乘法和网格读取 |
 | [`10_object_oriented`](10_object_oriented/) | 类、dataclass、继承、ABC、覆写、排序、多态和组合 |
 | [`11_debugging_and_testing`](11_debugging_and_testing/) | assert、stderr、计时、unittest、doctest 和临时文件 |
-| [`12_exam_workflows`](12_exam_workflows/) | 单文件、批量、输出目录、容错、计时和完整考试模板 |
 | [`13_example_tasks`](13_example_tasks/) | 九个带真实输入和期望输出的完整综合任务 |
 | [`14_optional_numpy`](14_optional_numpy/) | 可选 NumPy 数组、读取、矩阵、统计和最小二乘 |
-| [`15_utils`](15_utils/) | 可复用 runner、筛选、解析、自然排序和计时工具 |
+| [`15_utils`](15_utils/) | 可复用筛选、解析、自然排序和计时工具 |
 
 ## 九个完整任务
 
@@ -142,7 +139,7 @@ python samples/run_all_samples.py --pattern 13_example_tasks --show-output
 PowerShell：
 
 ```powershell
-python .\samples\12_exam_workflows\full_exam_template.py
+python .\samples\07_algorithms\dijkstra.py
 Get-ChildItem .\samples -Recurse -Filter *.py |
     Select-String -Pattern 'bisect_left'
 ```
@@ -150,7 +147,7 @@ Get-ChildItem .\samples -Recurse -Filter *.py |
 CMD：
 
 ```bat
-python samples\12_exam_workflows\full_exam_template.py
+python samples\07_algorithms\dijkstra.py
 findstr /s /n /i "bisect_left" samples\*.py
 ```
 

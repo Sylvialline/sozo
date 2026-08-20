@@ -1,7 +1,7 @@
 # 2025-8 编程题复盘
 
-> `solve.py` 是受保护的考试代码。本文件只记录审查结论和可选改进，任何
-> `solve.py` 修改都由仓库所有者亲自完成。
+> `solve.py` 是受保护的考试代码。2026-08-20，仓库所有者一次性明确授权将旧批量
+> 运行接口迁移到 `Exam`；本次迁移没有改动解题算法。
 
 ## 验证状态
 
@@ -19,10 +19,10 @@
 
 这些数字只描述当前合成数据和当前机器，不代表真实考试数据规模。
 
-加入 runner 的惰性答案选择后，代表性回归结果为：
+旧批量接口加入惰性答案选择后，代表性回归结果为：
 
-- `data1c.txt --answer 1`：约 7.8 毫秒，而完整执行约 38.0 秒；
-- `data2c.txt --answer 2`：约 1.8 毫秒，而完整执行约 8.9 秒。
+- `data1c.txt` 只取得第 1 个答案：约 7.8 毫秒，而完整执行约 38.0 秒；
+- `data2c.txt` 只取得第 2 个答案：约 1.8 毫秒，而完整执行约 8.9 秒。
 
 优化来自生成器在目标 `yield` 后被关闭，后续算法没有执行，而不是仅仅隐藏其输出。
 
@@ -39,20 +39,19 @@
 
 ## 优先级最高的改进建议
 
-### 1. 按小问停止生成器
+### 1. 用 `Exam` 按小问停止生成器
 
-runner 已提供 `--answer N`，不需要改变 `solve(data)` 接口，也不分析文件名：
+当前实现保留 `answers(data)` 生成器作为内部答案流水线，并由五个 `@exam.task`
+分别取第 1～5 个答案。`select_answer()` 在取得目标 `yield` 后立即关闭生成器，因此
+目标答案之后的算法仍然不会执行。
 
 ```powershell
-python run.py 2025-8 --only '^data1' --answer 1 --time
-python run.py 2025-8 --only '^data2' --answer 2 --time
-python run.py 2025-8 --only '^data3' --answer 3 --time
-python run.py 2025-8 --only '^data4' --answer 4 --time
-python run.py 2025-8 --only '^data5' --answer 5 --time
+python -u .\2025-8\solve.py
 ```
 
-它只执行到目标 `yield`，不会运行后面的代码。目标 `yield` 之前已经主动完成的计算仍会
-执行，因此在考试代码中何时计算、何时 `yield` 仍然值得有意识地安排。
+只运行一个题组时，把文件末尾暂时写成 `exam.execute(only=task3)`；写入
+`answer.json` 时使用 `exam.execute(output=True, only=task3)`。目标 `yield` 之前已经
+主动完成的计算仍会执行，因此何时计算、何时 `yield` 仍然值得有意识地安排。
 
 ### 2. 让画布依赖包围盒尺寸，而不是绝对坐标
 
@@ -92,7 +91,7 @@ python run.py 2025-8 --only '^data5' --answer 5 --time
 
 ## 本题沉淀出的通用资源
 
-- `utils.BatchIO`：批量文件发现、自然排序、计时、输出和生成器答案选择。
+- `utils.Exam`、`Series`、`read_data`：题组声明、数据读取、计时和答案输出。
 - `utils.DSU`：迭代路径压缩、按大小合并、连通判断、集合大小和集合数量。
 
 暂不提取到全局 `utils`：
