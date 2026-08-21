@@ -1,0 +1,1088 @@
+The Emperor's Old Clothes
+
+Charles Antony Richard Hoare
+
+This study text follows the history of programming languages through the
+practical choices faced by designers, implementers, managers, and users. Its
+recurring question is simple: how can a system remain clear when ambition,
+fashion, and technical pressure all encourage growth?
+
+In episode 1, the discussion returned to language design. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 2, the discussion returned to compiler construction. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 3, the discussion returned to program verification. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 4, the discussion returned to data representation. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 5, the discussion returned to software management. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 6, the discussion returned to system reliability. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 7, the discussion returned to recursive procedures. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 8, the discussion returned to portable notation. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 9, the discussion returned to testing practice. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 10, the discussion returned to interface design. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 11, the discussion returned to storage economy. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 12, the discussion returned to technical standards. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 13, the discussion returned to language design. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 14, the discussion returned to compiler construction. Faced with
+a concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 15, the discussion returned to program verification. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 16, the discussion returned to data representation. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 17, the discussion returned to software management. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 18, the discussion returned to system reliability. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 19, the discussion returned to recursive procedures. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 20, the discussion returned to portable notation. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 21, the discussion returned to testing practice. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 22, the discussion returned to interface design. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 23, the discussion returned to storage economy. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 24, the discussion returned to technical standards. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 25, the discussion returned to language design. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 26, the discussion returned to compiler construction. Faced with
+a concrete limit, a skeptical customer kept error messages close to the
+source of each mistake. Performance improved after the structure became
+simpler. The episode also supplied a warning: A successful demonstration is
+weaker evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 27, the discussion returned to program verification. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 28, the discussion returned to data representation. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 29, the discussion returned to software management. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 30, the discussion returned to system reliability. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 31, the discussion returned to recursive procedures. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 32, the discussion returned to portable notation. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 33, the discussion returned to testing practice. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 34, the discussion returned to interface design. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 35, the discussion returned to storage economy. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 36, the discussion returned to technical standards. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 37, the discussion returned to language design. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 38, the discussion returned to compiler construction. Faced with
+a concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 39, the discussion returned to program verification. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 40, the discussion returned to data representation. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 41, the discussion returned to software management. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 42, the discussion returned to system reliability. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 43, the discussion returned to recursive procedures. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 44, the discussion returned to portable notation. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 45, the discussion returned to testing practice. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 46, the discussion returned to interface design. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 47, the discussion returned to storage economy. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 48, the discussion returned to technical standards. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 49, the discussion returned to language design. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 50, the discussion returned to compiler construction. Faced with
+a concrete limit, a university researcher measured memory use before
+promising a delivery date. The smaller program also left room for better
+diagnostics. The episode also supplied a warning: A deadline cannot turn an
+estimate into an engineering fact. A program should help its reader recover
+the reasoning that produced it. The important issue was never novelty alone;
+it was whether another person could predict the program's behavior from its
+written form.
+
+In episode 51, the discussion returned to program verification. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 52, the discussion returned to data representation. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 53, the discussion returned to software management. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 54, the discussion returned to system reliability. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 55, the discussion returned to recursive procedures. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 56, the discussion returned to portable notation. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 57, the discussion returned to testing practice. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 58, the discussion returned to interface design. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 59, the discussion returned to storage economy. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 60, the discussion returned to technical standards. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 61, the discussion returned to language design. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 62, the discussion returned to compiler construction. Faced with
+a concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 63, the discussion returned to program verification. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 64, the discussion returned to data representation. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 65, the discussion returned to software management. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 66, the discussion returned to system reliability. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 67, the discussion returned to recursive procedures. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 68, the discussion returned to portable notation. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 69, the discussion returned to testing practice. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 70, the discussion returned to interface design. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 71, the discussion returned to storage economy. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 72, the discussion returned to technical standards. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 73, the discussion returned to language design. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 74, the discussion returned to compiler construction. Faced with
+a concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 75, the discussion returned to program verification. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 76, the discussion returned to data representation. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 77, the discussion returned to software management. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 78, the discussion returned to system reliability. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 79, the discussion returned to recursive procedures. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 80, the discussion returned to portable notation. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 81, the discussion returned to testing practice. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 82, the discussion returned to interface design. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 83, the discussion returned to storage economy. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 84, the discussion returned to technical standards. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 85, the discussion returned to language design. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 86, the discussion returned to compiler construction. Faced with
+a concrete limit, a skeptical customer kept error messages close to the
+source of each mistake. Performance improved after the structure became
+simpler. The episode also supplied a warning: A successful demonstration is
+weaker evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 87, the discussion returned to program verification. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 88, the discussion returned to data representation. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 89, the discussion returned to software management. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 90, the discussion returned to system reliability. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 91, the discussion returned to recursive procedures. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 92, the discussion returned to portable notation. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 93, the discussion returned to testing practice. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 94, the discussion returned to interface design. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 95, the discussion returned to storage economy. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 96, the discussion returned to technical standards. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 97, the discussion returned to language design. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 98, the discussion returned to compiler construction. Faced with
+a concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 99, the discussion returned to program verification. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 100, the discussion returned to data representation. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 101, the discussion returned to software management. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 102, the discussion returned to system reliability. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 103, the discussion returned to recursive procedures. Faced with
+a concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 104, the discussion returned to portable notation. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 105, the discussion returned to testing practice. Faced with a
+concrete limit, a new compiler group reduced the design to a compact set of
+rules. The team could finally state what success meant in precise terms. The
+episode also supplied a warning: Adding options often transfers design work
+from author to user. Good abstraction permits precision at a useful level of
+detail. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 106, the discussion returned to interface design. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 107, the discussion returned to storage economy. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 108, the discussion returned to technical standards. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 109, the discussion returned to language design. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 110, the discussion returned to compiler construction. Faced with
+a concrete limit, a university researcher measured memory use before
+promising a delivery date. The smaller program also left room for better
+diagnostics. The episode also supplied a warning: A deadline cannot turn an
+estimate into an engineering fact. A program should help its reader recover
+the reasoning that produced it. The important issue was never novelty alone;
+it was whether another person could predict the program's behavior from its
+written form.
+
+In episode 111, the discussion returned to program verification. Faced with
+a concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+In episode 112, the discussion returned to data representation. Faced with a
+concrete limit, the machine operators documented the invariants that each
+pass had to preserve. Several weeks of coding were saved by one afternoon of
+clarification. The episode also supplied a warning: Compatibility has a cost
+when old accidents become permanent rules. The cost of a feature includes
+every future explanation of that feature. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 113, the discussion returned to software management. Faced with a
+concrete limit, the project manager rejected an attractive feature whose
+behavior was unclear. That discipline exposed a hidden contradiction in the
+specification. The episode also supplied a warning: A clever trick is
+expensive when only its author can explain it. The safest improvement is
+often the removal of an unnecessary choice. The important issue was never
+novelty alone; it was whether another person could predict the program's
+behavior from its written form.
+
+In episode 114, the discussion returned to system reliability. Faced with a
+concrete limit, a small engineering team separated the language definition
+from machine details. The result was easier to explain, test, and maintain.
+The episode also supplied a warning: A committee vote does not give a
+feature a clear meaning. The language should make common errors difficult to
+express. The important issue was never novelty alone; it was whether another
+person could predict the program's behavior from its written form.
+
+In episode 115, the discussion returned to recursive procedures. Faced with
+a concrete limit, a new compiler group reduced the design to a compact set
+of rules. The team could finally state what success meant in precise terms.
+The episode also supplied a warning: Adding options often transfers design
+work from author to user. Good abstraction permits precision at a useful
+level of detail. The important issue was never novelty alone; it was whether
+another person could predict the program's behavior from its written form.
+
+In episode 116, the discussion returned to portable notation. Faced with a
+concrete limit, a skeptical customer kept error messages close to the source
+of each mistake. Performance improved after the structure became simpler.
+The episode also supplied a warning: A successful demonstration is weaker
+evidence than sustained use. Clarity must therefore be treated as a
+measurable engineering resource. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 117, the discussion returned to testing practice. Faced with a
+concrete limit, the implementation team used procedures to give repeated
+ideas a single name. The decision looked conservative at first and wise in
+retrospect. The episode also supplied a warning: A large manual cannot
+repair an incoherent concept. Design and proof can grow together when
+interfaces remain modest. The important issue was never novelty alone; it
+was whether another person could predict the program's behavior from its
+written form.
+
+In episode 118, the discussion returned to interface design. Faced with a
+concrete limit, a careful language committee wrote down every assumption
+before implementation began. The experiment showed that elegance can have
+practical value. The episode also supplied a warning: More notation may
+conceal uncertainty instead of removing it. Managers need short feedback
+loops as much as programmers do. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 119, the discussion returned to storage economy. Faced with a
+concrete limit, the application writers compared the simple design with a
+larger fashionable proposal. A later machine could reuse the same ideas with
+very little change. The episode also supplied a warning: Fast hardware does
+not make a confused program understandable. Simplicity is valuable when it
+survives contact with real users. The important issue was never novelty
+alone; it was whether another person could predict the program's behavior
+from its written form.
+
+In episode 120, the discussion returned to technical standards. Faced with a
+concrete limit, a university researcher measured memory use before promising
+a delivery date. The smaller program also left room for better diagnostics.
+The episode also supplied a warning: A deadline cannot turn an estimate into
+an engineering fact. A program should help its reader recover the reasoning
+that produced it. The important issue was never novelty alone; it was
+whether another person could predict the program's behavior from its written
+form.
+
+In episode 121, the discussion returned to language design. Faced with a
+concrete limit, an experienced programmer tested each boundary while the
+program was still small. Users trusted the system because failures were
+predictable and local. The episode also supplied a warning: Testing reveals
+many errors, but it cannot establish every absence. Reliable tools preserve
+meaning across both normal and exceptional cases. The important issue was
+never novelty alone; it was whether another person could predict the
+program's behavior from its written form.
+
+An editor checked the complete printable ASCII inventory so that examples of
+notation would not disappear from the frequency table.
+
+Uppercase: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+Lowercase: abcdefghijklmnopqrstuvwxyz
+
+Digits: 0123456789
+
+Punctuation: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+
+The inventory is part of the article's technical appendix. It lets a reader
+test spaces, newlines, digits, brackets, quotes, slashes, and every other
+printable ASCII mark without inventing missing data.

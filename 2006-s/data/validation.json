@@ -1,0 +1,32 @@
+{
+  "q1.txt": {
+    "bytes": 484,
+    "characters": 484,
+    "words": 86,
+    "lines": 8,
+    "max_line_length": 70,
+    "distinct_allowed_characters": 31,
+    "missing_required_characters": [],
+    "sha256": "ba5782edbf2ad42900dd3fbf0de2e3f178ff9f8bcf1ece45549b2cc70a992588"
+  },
+  "q21.txt": {
+    "bytes": 65984,
+    "characters": 65984,
+    "words": 10113,
+    "lines": 1088,
+    "max_line_length": 76,
+    "distinct_allowed_characters": 96,
+    "missing_required_characters": [],
+    "sha256": "1a1024db53a56736d356c4d0447b6ee730503bcdae11baa0ceaaa06456f9cc89"
+  },
+  "q22.txt": {
+    "bytes": 63177,
+    "characters": 63177,
+    "words": 9034,
+    "lines": 1098,
+    "max_line_length": 76,
+    "distinct_allowed_characters": 43,
+    "missing_required_characters": [],
+    "sha256": "db7ae081576c7f39e736d9a6f916eea90aa52513f8ef7e61a4753c89215eaac1"
+  }
+}

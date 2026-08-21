@@ -242,10 +242,10 @@ def center(pixels: list[Pixel]):
     # Case("5.2", 8, (2, 4, 6), files=("image3.txt",)),
     # Case("5.t", 8, (2, 4, 6), files=("image1.txt",)),
 )
-def task5(k: int, arr_i: tuple[int], pixels: list[Pixel]):
+def task5(k: int, indices: tuple[int, ...], pixels: list[Pixel]):
     img = RGBImage(pixels)
     p = img.k_clusters(k)
-    return [p[i] for i in arr_i]
+    return [p[i] for i in indices]
 
 @exam.task(
     Case("6", 32, "image.tif", files=("image2.txt",))
