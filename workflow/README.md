@@ -7,7 +7,8 @@ workflow across computers.
 
 [`run_python.py`](run_python.py) provides one command for selecting CPython or
 PyPy without changing any `solve.py` or the machine's PowerShell execution
-policy. See [`PYPY.md`](PYPY.md) for the portable Windows setup, comparison
+policy. Child processes and the Windows console use UTF-8 while the target is
+running. See [`PYPY.md`](PYPY.md) for the portable Windows setup, comparison
 workflow, and exam-time decision rules.
 
 Machine-local interpreters live under `runtimes/` and are intentionally not

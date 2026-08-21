@@ -59,6 +59,21 @@ python .\workflow\run_python.py auto .\2019-s\solve.py
 pypy3 -u .\2019-s\solve.py
 ```
 
+## UTF-8 控制台输出
+
+仓库启动器会给 CPython/PyPy 子进程固定设置 `PYTHONUTF8=1` 和
+`PYTHONIOENCODING=utf-8`。Windows 有控制台时，运行期间还会把输入、输出代码页临时
+切换到 UTF-8（65001），结束后恢复原代码页。因此 task 返回值、JSON、异常和日志中的
+中文都使用同一编码，不依赖当前 PowerShell 是 936 还是 65001。
+
+直接运行 `pypy3` 不经过这层处理；如需绕过启动器，应先手动执行：
+
+```powershell
+chcp 65001
+$env:PYTHONIOENCODING = "utf-8"
+$env:PYTHONUTF8 = "1"
+```
+
 ## 考场怎么选
 
 先用同一个代表性输入分别跑一次 CPython 和 PyPy，以启动器的 `[elapsed]` 为准；不要

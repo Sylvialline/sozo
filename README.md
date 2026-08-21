@@ -63,7 +63,8 @@ python .\workflow\run_python.py pypy .\2025-8\solve.py
 
 安装、CPython/PyPy 对比、适用边界和超时注意事项见
 [`workflow/PYPY.md`](workflow/PYPY.md)。默认工作流仍使用 CPython；PyPy 是经过本题
-实测后再启用的应急运行时。
+实测后再启用的应急运行时。仓库启动器会统一子进程和 Windows 控制台为 UTF-8，避免
+当前代码页为 936 时 PyPy 的中文输出乱码。
 
 ## Python 考场速查库
 
@@ -277,6 +278,40 @@ factor_pairs(12, include_swapped=True)
 ```
 
 两个函数都要求 `n` 为正整数，并正确去除完全平方数平方根位置的重复项。
+
+## `PriorityQueue`：稳定的最小堆与最大堆
+
+`PriorityQueue` 默认弹出最小元素，支持初始化数据、`key=`、最大堆和单独指定优先级；
+优先级相同时保持入队顺序，因此元素本身不需要能够相互比较：
+
+```python
+from utils import PriorityQueue
+
+pq = PriorityQueue([5, 1, 3])
+pq.push(2)
+pq.peek()  # 1，不移除
+pq.pop()   # 1
+
+jobs = PriorityQueue(key=lambda job: job.cost)
+jobs.push(job)
+
+max_pq = PriorityQueue(reverse=True)
+max_pq.push("answer", priority=42)
+priority, item = max_pq.pop_with_priority()
+```
+
+空队列要写成 `PriorityQueue()`，不能写成只引用类本身的 `PriorityQueue`。不标泛型也能
+直接 `push()`；如果希望类型检查器准确识别 `pop()` 的返回类型，或者 Huffman 队列会
+同时存放多个 `Node` 子类，显式写出共同基类：
+
+```python
+nodes = PriorityQueue[Node](key=lambda node: node.weight)
+nodes.push(Leaf(weight, char))
+nodes.push(Internal(weight, left, right))
+```
+
+队列还提供 `peek_with_priority()`、`clear()`、`len(pq)` 和 `bool(pq)`。它不维护
+decrease-key 映射；Dijkstra 等算法仍可重复压入新状态，并由调用方跳过过期状态。
 
 ## `Graph`：显式节点集、BFS、缩点与拓扑排序
 

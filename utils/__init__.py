@@ -4,6 +4,7 @@ from .dsu import DSU
 from .exam import INHERIT, Case, Exam, Input, Series
 from .graph import Condensation, Graph
 from .math_ext import divisors, factor_pairs
+from .priority_queue import PriorityQueue
 
 __all__ = [
     "AnswerBook",
@@ -14,6 +15,7 @@ __all__ = [
     "Graph",
     "INHERIT",
     "Input",
+    "PriorityQueue",
     "Series",
     "divisors",
     "factor_pairs",

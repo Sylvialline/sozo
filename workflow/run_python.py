@@ -1,16 +1,58 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from time import perf_counter
+from typing import Iterator
 
 
 RUNTIME_DIRECTORY = Path(__file__).resolve().parent / "runtimes"
 PYPY_EXECUTABLE = re.compile(r"pypy3(?:\.\d+)?(?:\.exe)?")
+UTF8_CODE_PAGE = 65001
+
+
+def utf8_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    environment["PYTHONIOENCODING"] = "utf-8"
+    environment["PYTHONUTF8"] = "1"
+    return environment
+
+
+@contextmanager
+def utf8_console() -> Iterator[None]:
+    if sys.platform != "win32":
+        yield
+        return
+
+    import ctypes
+
+    kernel32 = ctypes.windll.kernel32
+    input_code_page = kernel32.GetConsoleCP()
+    output_code_page = kernel32.GetConsoleOutputCP()
+    input_changed = False
+    output_changed = False
+
+    try:
+        if input_code_page and input_code_page != UTF8_CODE_PAGE:
+            if not kernel32.SetConsoleCP(UTF8_CODE_PAGE):
+                raise OSError("Cannot switch the console input to UTF-8.")
+            input_changed = True
+        if output_code_page and output_code_page != UTF8_CODE_PAGE:
+            if not kernel32.SetConsoleOutputCP(UTF8_CODE_PAGE):
+                raise OSError("Cannot switch the console output to UTF-8.")
+            output_changed = True
+        yield
+    finally:
+        if output_changed:
+            kernel32.SetConsoleOutputCP(output_code_page)
+        if input_changed:
+            kernel32.SetConsoleCP(input_code_page)
 
 
 def find_pypy() -> Path | None:
@@ -77,18 +119,23 @@ def main(argv: list[str] | None = None) -> int:
         *args.script_arguments,
     ]
 
-    print(f"[runtime] {runtime_name}: {interpreter}", flush=True)
-    print(f"[script]  {script}", flush=True)
+    with utf8_console():
+        print(f"[runtime] {runtime_name}: {interpreter}", flush=True)
+        print(f"[script]  {script}", flush=True)
 
-    started = perf_counter()
-    try:
-        return subprocess.run(command, cwd=script.parent).returncode
-    except KeyboardInterrupt:
-        print("[interrupted] Ctrl+C", file=sys.stderr, flush=True)
-        return 130
-    finally:
-        elapsed = perf_counter() - started
-        print(f"[elapsed] {elapsed:.3f}s", flush=True)
+        started = perf_counter()
+        try:
+            return subprocess.run(
+                command,
+                cwd=script.parent,
+                env=utf8_environment(),
+            ).returncode
+        except KeyboardInterrupt:
+            print("[interrupted] Ctrl+C", file=sys.stderr, flush=True)
+            return 130
+        finally:
+            elapsed = perf_counter() - started
+            print(f"[elapsed] {elapsed:.3f}s", flush=True)
 
 
 if __name__ == "__main__":
