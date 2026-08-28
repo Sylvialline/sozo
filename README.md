@@ -279,6 +279,27 @@ factor_pairs(12, include_swapped=True)
 
 两个函数都要求 `n` 为正整数，并正确去除完全平方数平方根位置的重复项。
 
+## `DSU` / `KeyedDSU`：整数与任意键并查集
+
+节点是连续整数 `0 .. n-1` 时使用数组实现的 `DSU(n)`；节点是字符串、元组等任意
+可哈希对象时使用 `KeyedDSU(keys)`：
+
+```python
+from utils import DSU, KeyedDSU
+
+numbered = DSU(10)
+named = KeyedDSU(["alice", "bob", "carol"])
+named.union("alice", "bob")
+
+named.add("dave")               # 动态加入；新增返回 True
+assert named.same("alice", "bob")
+assert named.size("alice") == 2
+assert named.components == 3
+```
+
+两者的 `union(a, b)` 都只在实际发生合并时返回 `True`。`KeyedDSU` 不会在查询时
+静默创建未知键；请先通过构造参数或 `add()` 注册，否则抛出 `KeyError`。
+
 ## `PriorityQueue`：稳定的最小堆与最大堆
 
 `PriorityQueue` 默认弹出最小元素，支持初始化数据、`key=`、最大堆和单独指定优先级；
@@ -313,14 +334,41 @@ nodes.push(Internal(weight, left, right))
 队列还提供 `peek_with_priority()`、`clear()`、`len(pq)` 和 `bool(pq)`。它不维护
 decrease-key 映射；Dijkstra 等算法仍可重复压入新状态，并由调用方跳过过期状态。
 
+## `nth` / `nth_element`：无需完整排序地选择第 n 个元素
+
+`nth(iterable, n)` 是无副作用的选择函数：它返回与 `sorted(iterable)[n]` 相同的
+元素，但不修改输入或做完整排序，并且可以接受生成器、元组等任意 iterable。
+
+`nth_element(values, n)` 则保留 C++ 同名函数的语义，只接受列表并原地重排：返回后
+`values[n]` 就是结果，左侧元素
+不大于它，右侧元素不小于它。支持 Python 负索引，并沿用 `sorted` 熟悉的 `key=`、
+`reverse=` 和稳定平局规则；`reverse=True` 时左右关系也随之反转：
+
+```python
+from utils import nth, nth_element
+
+median = nth(values, len(values) // 2)  # values 不变
+third_largest = nth_element(values, 2, reverse=True)
+oldest = nth(records, 0, key=lambda record: record.age)
+```
+
+两个函数都采用 quickselect，平均时间 O(n)，内部空间 O(n)；索引越界抛出
+`IndexError`，行为与普通序列索引一致。
+
 ## `Graph`：显式节点集、BFS、缩点与拓扑排序
 
 `Graph` 的核心不变量是：`g.adj` 的 key 集合就是完整节点集。无论节点是否有
 出边，都必须作为 key 存在；`g[u]` 和 `g.neighbors(u)` 只查询，缺失节点会抛出
 `KeyError`，绝不会因查询而创建节点。`add_edge(u, v)` 会显式补齐两个端点。
+`Graph` 以节点类型为泛型参数；函数边界写成 `Graph[int]`、`Graph[str]` 后，迭代
+节点、邻居、距离字典、SCC 等结果都会保留该类型。权重类型保持动态。
 
 ```python
 from utils import Graph
+
+def solve_integer_graph(g: Graph[int]) -> None:
+    for node in g:             # node 推断为 int
+        ...
 
 g = Graph.from_edges(
     [("a", "b"), ("b", "a"), ("b", "c")],

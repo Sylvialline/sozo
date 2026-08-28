@@ -1152,6 +1152,12 @@ class ReadFilesTests(unittest.TestCase):
 
 
 class GraphTests(unittest.TestCase):
+    def test_node_type_can_be_specialized(self):
+        graph = Graph[int].from_edges([(1, 2), (2, 3)])
+
+        self.assertEqual(list(graph), [1, 2, 3])
+        self.assertEqual(graph.bfs_distances(1), {1: 0, 2: 1, 3: 2})
+
     def test_node_set_is_complete_and_queries_do_not_create_nodes(self):
         graph = Graph({"a": ["b"]})
 
@@ -1223,11 +1229,11 @@ class GraphTests(unittest.TestCase):
             graph.dijkstra_distances("missing")
 
         unweighted = Graph.from_edges([(0, 1)])
-        with self.assertRaisesRegex(ValueError, "带权图"):
+        with self.assertRaisesRegex(ValueError, "requires a weighted graph"):
             unweighted.dijkstra_distances(0)
 
         negative = Graph.from_edges([(0, 1, -1)], weighted=True)
-        with self.assertRaisesRegex(ValueError, "负权边"):
+        with self.assertRaisesRegex(ValueError, "negative edge weights"):
             negative.dijkstra_distances(0)
 
     def test_topological_sort_and_cycle_detection(self):
@@ -1246,7 +1252,7 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(graph.topological_sort(reverse=True), list(reversed(order)))
 
         cycle = Graph.from_edges([(1, 2), (2, 3), (3, 1)])
-        with self.assertRaisesRegex(ValueError, "包含环"):
+        with self.assertRaisesRegex(ValueError, "contains a cycle"):
             cycle.topological_sort()
 
     def test_condensation_contracts_sccs_and_preserves_parallel_edges(self):

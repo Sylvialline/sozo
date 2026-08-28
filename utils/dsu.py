@@ -1,3 +1,12 @@
+from __future__ import annotations
+
+from collections.abc import Hashable, Iterable
+from typing import Generic, TypeVar
+
+
+K = TypeVar("K", bound=Hashable)
+
+
 class DSU:
     """带路径压缩和按集合大小合并的并查集。
 
@@ -49,3 +58,77 @@ class DSU:
     def size(self, x: int) -> int:
         """返回 x 所在集合的元素数量。"""
         return self._size[self.find(x)]
+
+
+class KeyedDSU(Generic[K]):
+    """以任意可哈希对象为键的并查集。
+
+    支持初始化后通过 ``add`` 动态加入键；查询或合并未知键会抛出
+    ``KeyError``，不会静默创建节点。``union`` 的返回约定与 ``DSU`` 相同。
+    """
+
+    __slots__ = ("parent", "_size", "components")
+
+    def __init__(self, keys: Iterable[K] = ()) -> None:
+        self.parent: dict[K, K] = {}
+        self._size: dict[K, int] = {}
+        self.components = 0
+
+        for key in keys:
+            self.add(key)
+
+    def __contains__(self, key: object) -> bool:
+        return key in self.parent
+
+    def __len__(self) -> int:
+        return len(self.parent)
+
+    def add(self, key: K) -> bool:
+        """加入一个独立键；实际新增时返回 True。"""
+        if key in self.parent:
+            return False
+
+        self.parent[key] = key
+        self._size[key] = 1
+        self.components += 1
+        return True
+
+    def find(self, key: K) -> K:
+        """返回 key 所在集合的代表键，并完整压缩访问路径。"""
+        try:
+            root = self.parent[key]
+        except KeyError:
+            raise KeyError(f"unknown key: {key!r}") from None
+
+        while root != self.parent[root]:
+            root = self.parent[root]
+
+        while key != root:
+            parent = self.parent[key]
+            self.parent[key] = root
+            key = parent
+
+        return root
+
+    def union(self, a: K, b: K) -> bool:
+        """合并 a、b 所在集合；发生合并时返回 True。"""
+        a = self.find(a)
+        b = self.find(b)
+        if a == b:
+            return False
+
+        if self._size[a] < self._size[b]:
+            a, b = b, a
+
+        self.parent[b] = a
+        self._size[a] += self._size[b]
+        self.components -= 1
+        return True
+
+    def same(self, a: K, b: K) -> bool:
+        """返回 a 和 b 是否属于同一集合。"""
+        return self.find(a) == self.find(b)
+
+    def size(self, key: K) -> int:
+        """返回 key 所在集合的元素数量。"""
+        return self._size[self.find(key)]

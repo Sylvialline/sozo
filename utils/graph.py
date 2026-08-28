@@ -1,47 +1,46 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Hashable, Iterable, Iterator, Mapping
+from collections.abc import Hashable, Iterable, Iterator, KeysView, Mapping
 from heapq import heappop, heappush
 from itertools import count
-from typing import Any, Literal, NamedTuple
+from typing import Any, Generic, Literal, NamedTuple, TypeVar, overload
 
 
-Node = Hashable
+NodeT = TypeVar("NodeT", bound=Hashable)
 
 
-class Condensation(NamedTuple):
-    """The SCC condensation of a graph.
+class Condensation(NamedTuple, Generic[NodeT]):
+    """强连通分量缩点结果。
 
-    ``graph`` is a DAG whose nodes are the integer indices of ``members``.
-    ``component_of[u]`` gives the index containing ``u``.
+    ``graph`` 是以 ``members`` 下标为节点的 DAG；``component_of[u]``
+    给出原节点 u 所属分量的下标。
     """
 
-    graph: Graph
-    members: tuple[tuple[Node, ...], ...]
-    component_of: dict[Node, int]
+    graph: Graph[int]
+    members: tuple[tuple[NodeT, ...], ...]
+    component_of: dict[NodeT, int]
 
     @property
-    def components(self) -> tuple[tuple[Node, ...], ...]:
-        """Alias for ``members``."""
+    def components(self) -> tuple[tuple[NodeT, ...], ...]:
+        """返回 ``members`` 的兼容别名。"""
         return self.members
 
 
-class Graph:
-    """A directed graph with an explicit, complete node set.
+class Graph(Generic[NodeT]):
+    """节点集合显式且完整的有向图。
 
-    ``adj`` is the single source of truth for the node set: its keys are all
-    nodes in the graph. Reading an adjacency list never creates a node.
-    ``add_edge`` creates both endpoint nodes when necessary.
+    ``adj`` 是节点集合的唯一真相来源，其全部 key 就是图的全部节点。查询
+    邻接表永远不会创建节点；``add_edge`` 会按需创建边的两个端点。
     """
 
     def __init__(
         self,
-        adj: Mapping[Node, Iterable[Any]] | None = None,
+        adj: Mapping[NodeT, Iterable[Any]] | None = None,
         *,
         weighted: bool = False,
     ) -> None:
-        self.adj: dict[Node, list[Any]] = {}
+        self.adj: dict[NodeT, list[Any]] = {}
         self.weighted = weighted
 
         if adj is None:
@@ -57,7 +56,8 @@ class Graph:
                         v, w = edge
                     except (TypeError, ValueError) as error:
                         raise ValueError(
-                            "weighted 图的边必须形如 (u, v, w) 中的 (v, w)"
+                            "weighted adjacency entries must be "
+                            "(neighbor, weight) pairs"
                         ) from error
                     self.add_edge(u, v, w)
                 else:
@@ -66,11 +66,42 @@ class Graph:
     @classmethod
     def from_nodes(
         cls,
-        nodes: Iterable[Node],
+        nodes: Iterable[NodeT],
         *,
         weighted: bool = False,
-    ) -> Graph:
+    ) -> Graph[NodeT]:
+        """从完整节点集合创建无边图。"""
         return cls({u: [] for u in nodes}, weighted=weighted)
+
+    @classmethod
+    @overload
+    def from_edges(
+        cls,
+        edges: Iterable[tuple[NodeT, NodeT]],
+        *,
+        weighted: Literal[False] = False,
+        undirected: bool = False,
+    ) -> Graph[NodeT]: ...
+
+    @classmethod
+    @overload
+    def from_edges(
+        cls,
+        edges: Iterable[tuple[NodeT, NodeT, Any]],
+        *,
+        weighted: Literal[True],
+        undirected: bool = False,
+    ) -> Graph[NodeT]: ...
+
+    @classmethod
+    @overload
+    def from_edges(
+        cls,
+        edges: Iterable[tuple[NodeT, ...]],
+        *,
+        weighted: bool = False,
+        undirected: bool = False,
+    ) -> Graph[NodeT]: ...
 
     @classmethod
     def from_edges(
@@ -79,7 +110,8 @@ class Graph:
         *,
         weighted: bool = False,
         undirected: bool = False,
-    ) -> Graph:
+    ) -> Graph[NodeT]:
+        """从边序列创建图，并在运行时校验每条边的长度。"""
         graph = cls(weighted=weighted)
 
         for edge in edges:
@@ -88,7 +120,8 @@ class Graph:
                     u, v, w = edge
                 except (TypeError, ValueError) as error:
                     raise ValueError(
-                        "weighted 图的边必须形如 (u, v, w)"
+                        "weighted edges must be "
+                        "(source, target, weight) triples"
                     ) from error
                 graph.add_edge(u, v, w)
                 if undirected:
@@ -98,7 +131,7 @@ class Graph:
                     u, v = edge
                 except (TypeError, ValueError) as error:
                     raise ValueError(
-                        "unweighted 图的边必须形如 (u, v)"
+                        "unweighted edges must be (source, target) pairs"
                     ) from error
                 graph.add_edge(u, v)
                 if undirected:
@@ -106,12 +139,14 @@ class Graph:
 
         return graph
 
-    def add_node(self, u: Node) -> None:
+    def add_node(self, u: NodeT) -> None:
+        """加入节点；节点已存在时不做任何操作。"""
         self.adj.setdefault(u, [])
 
-    def add_edge(self, u: Node, v: Node, w: Any = None) -> None:
+    def add_edge(self, u: NodeT, v: NodeT, w: Any = None) -> None:
+        """加入有向边，并按需创建两个端点。"""
         if not self.weighted and w is not None:
-            raise ValueError("unweighted 图不能添加权重")
+            raise ValueError("cannot add a weight to an unweighted graph")
 
         self.add_node(u)
         self.add_node(v)
@@ -120,14 +155,15 @@ class Graph:
         else:
             self.adj[u].append(v)
 
-    def add_undirected_edge(self, u: Node, v: Node, w: Any = None) -> None:
+    def add_undirected_edge(self, u: NodeT, v: NodeT, w: Any = None) -> None:
+        """加入一对方向相反的边。"""
         self.add_edge(u, v, w)
         self.add_edge(v, u, w)
 
-    def __getitem__(self, u: Node) -> list[Any]:
+    def __getitem__(self, u: NodeT) -> list[Any]:
         return self.adj[u]
 
-    def __iter__(self) -> Iterator[Node]:
+    def __iter__(self) -> Iterator[NodeT]:
         return iter(self.adj)
 
     def __contains__(self, u: object) -> bool:
@@ -136,15 +172,18 @@ class Graph:
     def __len__(self) -> int:
         return len(self.adj)
 
-    def nodes(self):
+    def nodes(self) -> KeysView[NodeT]:
+        """返回按插入顺序迭代的节点视图。"""
         return self.adj.keys()
 
-    def neighbors(self, u: Node) -> Iterator[Node]:
+    def neighbors(self, u: NodeT) -> Iterator[NodeT]:
+        """迭代 u 的出邻居；带权图中忽略权值。"""
         if self.weighted:
             return (v for v, _ in self.adj[u])
         return iter(self.adj[u])
 
     def edges(self) -> Iterator[tuple[Any, ...]]:
+        """按插入顺序迭代边；带权图返回三元组，否则返回二元组。"""
         if self.weighted:
             for u, edges in self.adj.items():
                 for v, w in edges:
@@ -154,17 +193,20 @@ class Graph:
                 for v in neighbors:
                     yield u, v
 
-    def indegrees(self) -> dict[Node, int]:
+    def indegrees(self) -> dict[NodeT, int]:
+        """返回每个节点的入度。"""
         degrees = {u: 0 for u in self}
         for u in self:
             for v in self.neighbors(u):
                 degrees[v] += 1
         return degrees
 
-    def outdegrees(self) -> dict[Node, int]:
+    def outdegrees(self) -> dict[NodeT, int]:
+        """返回每个节点的出度。"""
         return {u: len(self.adj[u]) for u in self}
 
-    def reverse(self) -> Graph:
+    def reverse(self) -> Graph[NodeT]:
+        """返回所有边反向后的新图。"""
         graph = Graph.from_nodes(self, weighted=self.weighted)
         if self.weighted:
             for u, v, w in self.edges():
@@ -175,17 +217,17 @@ class Graph:
         return graph
 
     def node_count(self) -> int:
+        """返回节点数。"""
         return len(self.adj)
 
     def edge_count(
         self,
         dedupe: Literal["none", "parallel", "undirected"] = "none",
     ) -> int:
-        """
-        dedupe:
-            "none"       - count all edges
-            "parallel"   - deduplicate edges with the same direction
-            "undirected" - additionally merge opposite directions
+        """返回边数，可选择去除平行边或进一步合并反向边。
+
+        ``dedupe="none"`` 统计全部边；``"parallel"`` 去除同向平行边；
+        ``"undirected"`` 还会把方向相反的边视为同一条边。
         """
         if dedupe == "none":
             return sum(len(neighbors) for neighbors in self.adj.values())
@@ -207,12 +249,11 @@ class Graph:
 
         return len(seen)
 
-    def bfs_distances(self, start: Node) -> dict[Node, int]:
-        """Return minimum edge counts from ``start``, ignoring edge weights.
+    def bfs_distances(self, start: NodeT) -> dict[NodeT, int]:
+        """返回从起点出发的最少边数，带权图也忽略权值。
 
-        The start node has distance 0. Unreachable nodes are omitted. If a
-        problem counts visited nodes rather than traversed edges, add 1 at the
-        call site. On a weighted graph, weights are intentionally ignored.
+        起点距离约定为 0，不可达节点不会出现在结果中。若题目计算访问的节点
+        数而不是经过的边数，由调用方自行加 1。
         """
         if start not in self:
             raise KeyError(start)
@@ -227,19 +268,18 @@ class Graph:
                     queue.append(v)
         return distances
 
-    def dijkstra_distances(self, start: Node) -> dict[Node, Any]:
-        """Return weighted shortest-path distances from ``start``.
+    def dijkstra_distances(self, start: NodeT) -> dict[NodeT, Any]:
+        """返回从起点出发的带权最短距离。
 
-        The graph must be weighted and reachable edge weights must be
-        nonnegative. The start node has distance 0; unreachable nodes are
-        omitted.
+        图必须带权且所有可达边权非负。起点距离为 0，不可达节点不会出现在
+        结果中。
         """
         if not self.weighted:
-            raise ValueError("dijkstra_distances() 只适用于带权图")
+            raise ValueError("dijkstra_distances() requires a weighted graph")
         if start not in self:
             raise KeyError(start)
 
-        distances: dict[Node, Any] = {start: 0}
+        distances: dict[NodeT, Any] = {start: 0}
         order = count()
         heap = [(0, next(order), start)]
 
@@ -250,7 +290,9 @@ class Graph:
 
             for v, weight in self.adj[u]:
                 if weight < 0:
-                    raise ValueError("Dijkstra 不支持负权边")
+                    raise ValueError(
+                        "Dijkstra does not support negative edge weights"
+                    )
                 candidate = distance + weight
                 if v not in distances or candidate < distances[v]:
                     distances[v] = candidate
@@ -258,15 +300,15 @@ class Graph:
 
         return distances
 
-    def topological_sort(self, *, reverse: bool = False) -> list[Node]:
-        """Return a topological order, or raise ``ValueError`` for a cycle.
+    def topological_sort(self, *, reverse: bool = False) -> list[NodeT]:
+        """返回拓扑序；图中存在环时抛出 ``ValueError``。
 
-        An edge ``u -> v`` puts ``u`` before ``v`` by default. With
-        ``reverse=True``, sinks come before their predecessors.
+        默认令每条边 ``u -> v`` 的 u 位于 v 前；``reverse=True`` 时汇点
+        位于其前驱之前。
         """
         indegree = self.indegrees()
         ready = deque(u for u in self if indegree[u] == 0)
-        order: list[Node] = []
+        order: list[NodeT] = []
 
         while ready:
             u = ready.popleft()
@@ -277,19 +319,21 @@ class Graph:
                     ready.append(v)
 
         if len(order) != len(self):
-            raise ValueError("图包含环，无法进行拓扑排序")
+            raise ValueError("graph contains a cycle; no topological order exists")
 
         if reverse:
             order.reverse()
         return order
 
-    def strongly_connected_components(self) -> tuple[tuple[Node, ...], ...]:
-        """Return SCCs in Tarjan pop order (for edges, sink SCCs come first)."""
-        index: dict[Node, int] = {}
-        lowlink: dict[Node, int] = {}
-        stack: list[Node] = []
-        on_stack: set[Node] = set()
-        components: list[tuple[Node, ...]] = []
+    def strongly_connected_components(
+        self,
+    ) -> tuple[tuple[NodeT, ...], ...]:
+        """按 Tarjan 出栈顺序返回强连通分量，汇分量通常在前。"""
+        index: dict[NodeT, int] = {}
+        lowlink: dict[NodeT, int] = {}
+        stack: list[NodeT] = []
+        on_stack: set[NodeT] = set()
+        components: list[tuple[NodeT, ...]] = []
         next_index = 0
 
         for start in self:
@@ -300,7 +344,7 @@ class Graph:
             next_index += 1
             stack.append(start)
             on_stack.add(start)
-            frames: list[tuple[Node, Iterator[Node], Node | None]] = [
+            frames: list[tuple[NodeT, Iterator[NodeT], NodeT | None]] = [
                 (start, self.neighbors(start), None)
             ]
 
@@ -314,7 +358,7 @@ class Graph:
                         lowlink[parent] = min(lowlink[parent], lowlink[u])
 
                     if lowlink[u] == index[u]:
-                        component: list[Node] = []
+                        component: list[NodeT] = []
                         while True:
                             v = stack.pop()
                             on_stack.remove(v)
@@ -335,8 +379,8 @@ class Graph:
 
         return tuple(components)
 
-    def condensation(self) -> Condensation:
-        """Contract SCCs into a DAG while preserving cross-component edges."""
+    def condensation(self) -> Condensation[NodeT]:
+        """把强连通分量缩为 DAG，并保留所有跨分量边。"""
         components = self.strongly_connected_components()
         component_of = {
             u: component
@@ -362,6 +406,6 @@ class Graph:
 
         return Condensation(graph, components, component_of)
 
-    def condense(self) -> Condensation:
-        """Alias for :meth:`condensation`."""
+    def condense(self) -> Condensation[NodeT]:
+        """返回 ``condensation`` 的兼容别名。"""
         return self.condensation()
