@@ -1,0 +1,90 @@
+{
+  "q2_1_component_sizes": [
+    25,
+    25,
+    25,
+    25
+  ],
+  "q2_2_cluster_coefficients_nodes_1_to_10": [
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+  ],
+  "q2_3_average_cluster_coefficient_g2": 0.415,
+  "q2_4_first_connected_edge_count": 184,
+  "q2_4_average_cluster_coefficient_g3": 0.4053333333333333,
+  "q2_5_average_cluster_coefficient_g4": 0.16242857142857145,
+  "q3_distance_27_63_g3": 8,
+  "q3_distance_27_63_g4": 1,
+  "q3_average_diameter_g3": 7.985656565656566,
+  "q3_average_diameter_g4": 3.948888888888889,
+  "q4_diameter_decrease_events": [
+    [
+      185,
+      19
+    ],
+    [
+      186,
+      17
+    ],
+    [
+      188,
+      13
+    ],
+    [
+      220,
+      12
+    ],
+    [
+      225,
+      11
+    ],
+    [
+      233,
+      10
+    ],
+    [
+      239,
+      9
+    ],
+    [
+      247,
+      8
+    ],
+    [
+      288,
+      7
+    ],
+    [
+      298,
+      6
+    ],
+    [
+      327,
+      5
+    ],
+    [
+      383,
+      4
+    ],
+    [
+      627,
+      3
+    ],
+    [
+      1332,
+      2
+    ],
+    [
+      4950,
+      1
+    ]
+  ]
+}

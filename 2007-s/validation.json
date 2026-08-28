@@ -1,0 +1,23 @@
+{
+  "edge_count": 4950,
+  "unique_edge_count": 4950,
+  "line_endings": "CRLF",
+  "encoding": "ASCII",
+  "g2_component_sizes": [
+    25,
+    25,
+    25,
+    25
+  ],
+  "g3_first_connected_N": 184,
+  "g3_average_clustering": 0.4053333333333333,
+  "g4_edge_count": 284,
+  "g4_average_clustering": 0.16242857142857145,
+  "g4_clustering_is_lower": true,
+  "q4_event_count": 15,
+  "q4_final_event": [
+    4950,
+    1
+  ],
+  "answers_verified": true
+}
