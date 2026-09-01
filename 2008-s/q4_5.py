@@ -95,6 +95,17 @@ moves = {
     'F2': mul(F, F),
     'F3': inv(F),
 }
+reverse_name = {
+    'R1': 'R3',
+    'R2': 'R2',
+    'R3': 'R1',
+    'U1': 'U3',
+    'U2': 'U2',
+    'U3': 'U1',
+    'F1': 'F3',
+    'F2': 'F2',
+    'F3': 'F1',
+}
 
 def task42():
     state_r = mul(init_state, R)
@@ -131,7 +142,7 @@ def all_states_in_n_steps(n: int):
         for name, move in moves.items():
             v = mul(u, move)
             if v not in path_book:
-                path_book[v] = pathu + [name]
+                path_book[v] = [reverse_name[name]] + pathu
                 q.append(v)
 
     return path_book
@@ -145,8 +156,8 @@ def task5():
         print(filename)
         print(path_book[state])
 
-print(all_states_in_n_steps(3))
+# print(all_states_in_n_steps(2))
 
-# task42()
-# task43()
+task42()
+task43()
 task5()

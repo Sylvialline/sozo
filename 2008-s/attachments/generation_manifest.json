@@ -1,0 +1,118 @@
+{
+  "kind": "deterministic local practice data; not an original exam attachment",
+  "figure_3_layout": [
+    "U R",
+    "  F D",
+    "    L B"
+  ],
+  "rotseq": [
+    [
+      "R1",
+      "U3",
+      "F2"
+    ],
+    [
+      "U1",
+      "R2",
+      "F3",
+      "U2"
+    ],
+    [
+      "F1",
+      "R3",
+      "U2",
+      "F2",
+      "R1"
+    ],
+    [
+      "U3",
+      "F1",
+      "R2",
+      "U1",
+      "F3",
+      "R1"
+    ]
+  ],
+  "generated_states": [
+    {
+      "file": "data1.txt",
+      "exact_shortest_distance": 2,
+      "generation_scramble": [
+        "R1",
+        "U2"
+      ],
+      "one_shortest_solution": [
+        "U2",
+        "R3"
+      ]
+    },
+    {
+      "file": "data2.txt",
+      "exact_shortest_distance": 3,
+      "generation_scramble": [
+        "U3",
+        "F2",
+        "U1"
+      ],
+      "one_shortest_solution": [
+        "U3",
+        "F2",
+        "U1"
+      ]
+    },
+    {
+      "file": "data3.txt",
+      "exact_shortest_distance": 4,
+      "generation_scramble": [
+        "F1",
+        "U3",
+        "F3",
+        "U3"
+      ],
+      "one_shortest_solution": [
+        "U1",
+        "F1",
+        "U1",
+        "F3"
+      ]
+    },
+    {
+      "file": "data4.txt",
+      "exact_shortest_distance": 5,
+      "generation_scramble": [
+        "F1",
+        "R3",
+        "F3",
+        "R3",
+        "U1"
+      ],
+      "one_shortest_solution": [
+        "U3",
+        "R1",
+        "F1",
+        "R1",
+        "F3"
+      ]
+    },
+    {
+      "file": "data5.txt",
+      "exact_shortest_distance": 6,
+      "generation_scramble": [
+        "F1",
+        "U1",
+        "F2",
+        "R1",
+        "U2",
+        "R3"
+      ],
+      "one_shortest_solution": [
+        "R1",
+        "U2",
+        "R3",
+        "F2",
+        "U3",
+        "F3"
+      ]
+    }
+  ]
+}

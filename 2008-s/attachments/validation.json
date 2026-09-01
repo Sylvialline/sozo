@@ -1,0 +1,29 @@
+{
+  "files": [
+    "init-state.txt",
+    "rotseq.txt",
+    "data1.txt",
+    "data2.txt",
+    "data3.txt",
+    "data4.txt",
+    "data5.txt"
+  ],
+  "encoding": "ASCII",
+  "line_endings": "CRLF",
+  "rotation_sequence_count": 4,
+  "first_rotation_sequence": [
+    "R1",
+    "U3",
+    "F2"
+  ],
+  "replacement_count": 24,
+  "data_exact_shortest_distances": [
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "all_data_within_six_moves": true,
+  "answers_verified": true
+}
