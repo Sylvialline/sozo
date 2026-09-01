@@ -66,9 +66,19 @@ python .\workflow\run_python.py pypy .\2025-8\solve.py
 实测后再启用的应急运行时。仓库启动器会统一子进程和 Windows 控制台为 UTF-8，避免
 当前代码页为 936 时 PyPy 的中文输出乱码。
 
+遇到慢 task 时，先做函数级扫描，再下钻到具体代码行：
+
+```powershell
+python .\workflow\profile_python.py functions .\2022-8\solve.py
+python .\workflow\profile_python.py lines .\2022-8\solve.py
+```
+
+安装、读表方式、`Exam` 超时/多进程注意事项和最终实测顺序见
+[`workflow/PROFILING.md`](workflow/PROFILING.md)。
+
 ## Python 考场速查库
 
-现场文档分成四个入口：
+现场文档分成五个入口：
 
 - [`utils/QUICK_REFERENCE.md`](utils/QUICK_REFERENCE.md)：从 `AnswerBook`、`Exam`、
   `Case`、`Series` 到 `@exam.task` 的答案执行与编排速查；
@@ -77,7 +87,9 @@ python .\workflow\run_python.py pypy .\2025-8\solve.py
 - [`samples/README.md`](samples/README.md)：面向 C++17/STL 使用者的 Python 3 离线
   示例索引，覆盖语法、标准库、解析、容器、算法、矩阵、调试和完整小任务；
 - [`offline_docs/index.html`](offline_docs/index.html)：与本机版本匹配的 Python、NumPy、
-  SciPy 官方 HTML 文档总入口，可完全离线浏览和搜索。
+  SciPy 官方 HTML 文档总入口，可完全离线浏览和搜索；
+- [`workflow/PROFILING.md`](workflow/PROFILING.md)：慢任务的函数级、逐行诊断与
+  CPython/PyPy 最终实测流程。
 
 写题时优先查 `utils` 速查手册来选择运行范式；遇到似曾相识的题型时查历年代码参考
 索引；需要回忆 Python 写法或算法模板时再查 `samples/`。
@@ -97,7 +109,7 @@ python samples/run_all_samples.py
 ├── AGENTS.md          # solve.py 的保护规则
 ├── README.md          # 仓库理念和现场用法
 ├── REFERENCE_PATTERNS.md # 历年题解中的参考型代码索引
-├── workflow/          # 运行时启动器、PyPy 手册与跨电脑 skill 资产
+├── workflow/          # 运行时、性能诊断手册与跨电脑 skill 资产
 ├── samples/           # Python 考场速查、完整示例与批量自检
 ├── utils/             # 已验证的通用模块及 QUICK_REFERENCE.md
 └── YYYY-MM/
@@ -295,10 +307,17 @@ named.add("dave")               # 动态加入；新增返回 True
 assert named.same("alice", "bob")
 assert named.size("alice") == 2
 assert named.components == 3
+assert named.component_count == 3  # components 的只读语义化别名
+
+named.roots()                    # {"alice", "carol", "dave"}
+named.members("bob")            # ["alice", "bob"]
+named.groups()                   # {"alice": ["alice", "bob"], ...}
 ```
 
 两者的 `union(a, b)` 都只在实际发生合并时返回 `True`。`KeyedDSU` 不会在查询时
-静默创建未知键；请先通过构造参数或 `add()` 注册，否则抛出 `KeyError`。
+静默创建未知键；请先通过构造参数或 `add()` 注册，否则抛出 `KeyError`。`roots()`、
+`members()` 和 `groups()` 都会压缩涉及节点的路径并返回容器快照；修改返回值不会影响
+并查集。整数版的成员按编号排列，任意键版保持键的加入顺序。
 
 ## `PriorityQueue`：稳定的最小堆与最大堆
 

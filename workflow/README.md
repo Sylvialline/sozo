@@ -14,6 +14,13 @@ workflow, and exam-time decision rules.
 Machine-local interpreters live under `runtimes/` and are intentionally not
 version-controlled.
 
+## Performance profiling
+
+[`profile_python.py`](profile_python.py) provides a no-source-edit workflow for
+function-level `cProfile` and line-level `line_profiler` diagnosis. See
+[`PROFILING.md`](PROFILING.md) for installation, exam-time commands, result
+interpretation, multiprocessing limits, and the final CPython/PyPy comparison.
+
 ## Skills
 
 `skills/` is the canonical source for repository-specific Codex skills. Keep

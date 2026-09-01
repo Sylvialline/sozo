@@ -59,6 +59,27 @@ class DSU:
         """返回 x 所在集合的元素数量。"""
         return self._size[self.find(x)]
 
+    @property
+    def component_count(self) -> int:
+        """返回当前互不相交集合的数量。"""
+        return self.components
+
+    def roots(self) -> set[int]:
+        """返回当前所有根的集合，并顺便压缩全部节点的路径。"""
+        return {self.find(x) for x in range(len(self.parent))}
+
+    def members(self, x: int) -> list[int]:
+        """返回 x 所在集合的全部元素，结果按编号升序排列。"""
+        root = self.find(x)
+        return [node for node in range(len(self.parent)) if self.find(node) == root]
+
+    def groups(self) -> dict[int, list[int]]:
+        """按根返回所有集合；返回值是快照，修改它不会影响并查集。"""
+        result: dict[int, list[int]] = {}
+        for node in range(len(self.parent)):
+            result.setdefault(self.find(node), []).append(node)
+        return result
+
 
 class KeyedDSU(Generic[K]):
     """以任意可哈希对象为键的并查集。
@@ -132,3 +153,24 @@ class KeyedDSU(Generic[K]):
     def size(self, key: K) -> int:
         """返回 key 所在集合的元素数量。"""
         return self._size[self.find(key)]
+
+    @property
+    def component_count(self) -> int:
+        """返回当前互不相交集合的数量。"""
+        return self.components
+
+    def roots(self) -> set[K]:
+        """返回当前所有根的集合，并顺便压缩全部键的路径。"""
+        return {self.find(key) for key in self.parent}
+
+    def members(self, key: K) -> list[K]:
+        """返回 key 所在集合的全部元素，保持键的加入顺序。"""
+        root = self.find(key)
+        return [item for item in self.parent if self.find(item) == root]
+
+    def groups(self) -> dict[K, list[K]]:
+        """按根返回所有集合；元素保持加入顺序，返回值是快照。"""
+        result: dict[K, list[K]] = {}
+        for key in self.parent:
+            result.setdefault(self.find(key), []).append(key)
+        return result

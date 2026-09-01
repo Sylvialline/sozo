@@ -13,9 +13,13 @@ tmp/
 output/
 *.out
 *.log
+*.prof
+*.lprof
+profile_output*.txt
 answer.json
 
 .DS_Store
 Thumbs.db
 
 draft.py
+tempCodeRunnerFile.py

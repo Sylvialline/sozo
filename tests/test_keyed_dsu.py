@@ -13,7 +13,27 @@ class KeyedDSUTests(unittest.TestCase):
         self.assertFalse(dsu.same("alice", "carol"))
         self.assertEqual(dsu.size("bob"), 2)
         self.assertEqual(dsu.components, 3)
+        self.assertEqual(dsu.component_count, 3)
         self.assertEqual(len(dsu), 4)
+
+    def test_roots_members_and_groups(self):
+        dsu = KeyedDSU(["alice", "bob", "carol", (1, 2)])
+        dsu.union("alice", "bob")
+
+        self.assertEqual(dsu.roots(), {"alice", "carol", (1, 2)})
+        self.assertEqual(dsu.members("bob"), ["alice", "bob"])
+        self.assertEqual(
+            dsu.groups(),
+            {
+                "alice": ["alice", "bob"],
+                "carol": ["carol"],
+                (1, 2): [(1, 2)],
+            },
+        )
+
+        groups = dsu.groups()
+        groups["alice"].clear()
+        self.assertEqual(dsu.members("alice"), ["alice", "bob"])
 
     def test_adds_keys_dynamically_without_duplicating_them(self):
         dsu = KeyedDSU[str]()
@@ -47,6 +67,8 @@ class KeyedDSUTests(unittest.TestCase):
             dsu.find("missing")
         with self.assertRaises(KeyError):
             dsu.union("known", "missing")
+        with self.assertRaises(KeyError):
+            dsu.members("missing")
 
     def test_rejects_unhashable_keys(self):
         dsu = KeyedDSU()

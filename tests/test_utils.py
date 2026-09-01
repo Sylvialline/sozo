@@ -1341,12 +1341,33 @@ class DSUTests(unittest.TestCase):
         self.assertFalse(dsu.same(0, 3))
         self.assertEqual(dsu.size(1), 3)
         self.assertEqual(dsu.components, 3)
+        self.assertEqual(dsu.component_count, 3)
+
+    def test_roots_members_and_groups(self):
+        dsu = DSU(6)
+        dsu.union(0, 1)
+        dsu.union(1, 2)
+        dsu.union(3, 4)
+
+        self.assertEqual(dsu.roots(), {0, 3, 5})
+        self.assertEqual(dsu.members(1), [0, 1, 2])
+        self.assertEqual(
+            dsu.groups(),
+            {0: [0, 1, 2], 3: [3, 4], 5: [5]},
+        )
+
+        groups = dsu.groups()
+        groups[0].clear()
+        self.assertEqual(dsu.members(0), [0, 1, 2])
 
     def test_empty_dsu(self):
         dsu = DSU(0)
 
         self.assertEqual(dsu.components, 0)
+        self.assertEqual(dsu.component_count, 0)
         self.assertEqual(dsu.parent, [])
+        self.assertEqual(dsu.roots(), set())
+        self.assertEqual(dsu.groups(), {})
 
     def test_rejects_negative_size(self):
         with self.assertRaises(ValueError):
