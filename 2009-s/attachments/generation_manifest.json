@@ -1,0 +1,47 @@
+{
+  "format": "ASCII text, CRLF line endings, one x y w h rectangle per line",
+  "files": {
+    "7.txt": {
+      "rectangle_count": 7,
+      "maximum_vertex_coordinate": 999,
+      "width_and_height_range": [
+        1,
+        50
+      ]
+    },
+    "10.txt": {
+      "rectangle_count": 10,
+      "maximum_vertex_coordinate": 999,
+      "width_and_height_range": [
+        1,
+        50
+      ]
+    },
+    "1000.txt": {
+      "rectangle_count": 1000,
+      "maximum_vertex_coordinate": 999,
+      "width_and_height_range": [
+        1,
+        50
+      ]
+    },
+    "q5.txt": {
+      "rectangle_count": 5000,
+      "maximum_vertex_coordinate": 9999999,
+      "width_and_height_range": [
+        1,
+        50
+      ]
+    }
+  },
+  "deterministic_seeds": {
+    "1000.txt_cluster_A": 2009,
+    "1000.txt_cluster_B": 2010,
+    "q5.txt": 200905
+  },
+  "design_notes": {
+    "7.txt": "Matches the example statistics stated in the exam.",
+    "1000.txt": "Contains two 200x200 clusters separated by a 5-unit gap and one 400-layer cluster.",
+    "q5.txt": "Uses the enlarged coordinate range and plants 137 rectangles over one unit square; all remaining rectangles are disjoint."
+  }
+}

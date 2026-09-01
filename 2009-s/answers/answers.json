@@ -1,0 +1,21 @@
+{
+  "q1": {
+    "maximum_thickness": 3,
+    "cluster_count": 5,
+    "maximum_cluster_elements": 4,
+    "maximum_cluster_area": 645
+  },
+  "q2_total_rectangle_area": 1456830,
+  "q3": {
+    "maximum_thickness": 400,
+    "cluster_count": 3,
+    "maximum_cluster_elements": 400,
+    "maximum_cluster_area": 40000
+  },
+  "q4": {
+    "thickness_increasing_placements": 3186,
+    "maximum_cluster_area_after_addition": 80050,
+    "maximizing_cluster_area_placements": 209
+  },
+  "q5_maximum_thickness": 137
+}

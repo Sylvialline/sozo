@@ -1,0 +1,40 @@
+{
+  "data_files": [
+    "7.txt",
+    "10.txt",
+    "1000.txt",
+    "q5.txt"
+  ],
+  "output_files": [
+    "q1.out",
+    "q2.out",
+    "q3.out",
+    "q4.out",
+    "q5.out"
+  ],
+  "encoding": "ASCII",
+  "line_endings": "CRLF",
+  "rectangle_counts": {
+    "7.txt": 7,
+    "10.txt": 10,
+    "1000.txt": 1000,
+    "q5.txt": 5000
+  },
+  "small_coordinate_range": [
+    0,
+    999
+  ],
+  "q5_coordinate_range": [
+    0,
+    9999999
+  ],
+  "width_and_height_range": [
+    1,
+    50
+  ],
+  "example_statistics_verified": true,
+  "independent_component_check": true,
+  "independent_q4_enumeration": true,
+  "q5_large_coordinate_structure_verified": true,
+  "all_answers_verified": true
+}
