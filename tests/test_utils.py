@@ -22,8 +22,10 @@ from utils import (
     Series,
     divisors,
     factor_pairs,
+    pretty_json,
     read_data,
     read_files,
+    to_jsonable,
 )
 
 import utils.exam as exam_module
@@ -44,6 +46,24 @@ def _parse_colon(data):
 
 def _uppercase_parser(data):
     return data.upper()
+
+
+class JsonHelpersTests(unittest.TestCase):
+    def test_public_helpers_convert_and_pretty_print_values(self):
+        source = {
+            "values": {3, 1, 2},
+            "vector": [1, 2, "三"],
+            "matrix": [[1, 2], [3, 4]],
+        }
+
+        converted = to_jsonable(source)
+        output = pretty_json(source)
+
+        self.assertEqual(converted["values"], [1, 2, 3])
+        self.assertIsInstance(source["values"], set)
+        self.assertIn('"vector": [1, 2, "三"]', output)
+        self.assertIn('"matrix": [\n', output)
+        self.assertEqual(json.loads(output), converted)
 
 
 class CallerDirectoryTests(unittest.TestCase):

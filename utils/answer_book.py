@@ -42,8 +42,13 @@ def _json_key_value(key: Any) -> str:
     raise TypeError("JSON 对象的键必须是 str、int、float、bool 或 None")
 
 
-def _to_jsonable(value: Any) -> Any:
-    """Return a JSON-compatible copy of an answer tree."""
+def to_jsonable(value: Any) -> Any:
+    """递归返回可交给 ``json.dumps`` 的副本。
+
+    支持常见容器、集合、dataclass、Enum、Path、日期时间、Decimal、
+    NumPy 标量和数组，以及提供 ``__json__``、``tolist``、``item`` 或
+    ``to_dict`` 方法的对象。普通容器不会被原地修改；一次性迭代器会被消费。
+    """
     seen: set[int] = set()
 
     def convert(item: Any) -> Any:
@@ -151,7 +156,7 @@ def _is_json_scalar(value: Any) -> bool:
     return value is None or isinstance(value, (str, int, float, bool))
 
 
-def _pretty_json(value: Any, indent: int) -> str:
+def _format_pretty_json(value: Any, indent: int) -> str:
     width = max(indent, 0)
     seen: set[int] = set()
 
@@ -220,6 +225,24 @@ def _pretty_json(value: Any, indent: int) -> str:
         return json.dumps(item, ensure_ascii=False)
 
     return format_value(value, 0)
+
+
+def pretty_json(
+    value: Any,
+    *,
+    indent: int | None = 2,
+    inline_simple_lists: bool = True,
+) -> str:
+    """将对象编码为易读且鲁棒的 JSON 字符串。
+
+    默认缩进对象和嵌套数组，但让仅含简单值的一维数组保持单行。传入
+    ``inline_simple_lists=False`` 可使用标准 ``json.dumps`` 缩进；传入
+    ``indent=None`` 可生成紧凑 JSON。
+    """
+    converted = to_jsonable(value)
+    if indent is not None and inline_simple_lists:
+        return _format_pretty_json(converted, indent)
+    return json.dumps(converted, ensure_ascii=False, indent=indent)
 
 
 class _TaskTimedOut(TimeoutError):
@@ -499,10 +522,11 @@ class AnswerBook:
         indent: int | None = 2,
         inline_simple_lists: bool = True,
     ) -> str:
-        answers = _to_jsonable(self.answers)
-        if indent is not None and inline_simple_lists:
-            return _pretty_json(answers, indent)
-        return json.dumps(answers, ensure_ascii=False, indent=indent)
+        return pretty_json(
+            self.answers,
+            indent=indent,
+            inline_simple_lists=inline_simple_lists,
+        )
 
     def print_json(
         self,

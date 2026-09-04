@@ -1,4 +1,4 @@
-from .answer_book import AnswerBook
+from .answer_book import AnswerBook, pretty_json, to_jsonable
 from .data_io import read_data, read_files
 from .dsu import DSU, KeyedDSU
 from .exam import INHERIT, Case, Exam, Input, Series
@@ -23,6 +23,8 @@ __all__ = [
     "factor_pairs",
     "nth",
     "nth_element",
+    "pretty_json",
     "read_data",
     "read_files",
+    "to_jsonable",
 ]

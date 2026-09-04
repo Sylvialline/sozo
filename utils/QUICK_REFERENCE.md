@@ -90,6 +90,19 @@ task 可直接返回 `set`、`frozenset`、dataclass、Enum、Path、日期时�
 一次性迭代器会被消费。自定义类型可实现 `__json__()` 返回可转换对象。未知类型仍会
 抛出 `TypeError`，便于及时发现遗漏。
 
+相同的转换和排版也可以脱离 `AnswerBook` 使用：
+
+```python
+from utils import pretty_json, to_jsonable
+
+data = {"seen": {3, 1, 2}, "matrix": [[1, 2], [3, 4]]}
+safe_data = to_jsonable(data)  # 可直接交给 json.dumps
+text = pretty_json(data)       # 自动转换，并使用 AnswerBook 的排版规则
+```
+
+`pretty_json()` 也接受 `indent` 和 `inline_simple_lists`，含义与
+`book.dumps()` 的同名参数一致。
+
 ## 2. `Exam`：统一读取、执行和输出
 
 `Exam` 把输入读取也纳入 `AnswerBook` 的计时、异常和超时边界。

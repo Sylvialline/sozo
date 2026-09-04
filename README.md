@@ -256,6 +256,15 @@ dataclass、Enum、Path、日期时间、Decimal、迭代器，以及 NumPy 标�
 消费并转成数组。自定义对象可实现 `__json__()`，返回任意可继续转换的对象。仍无法
 转换的对象会明确抛出 `TypeError`，不会被静默写成含糊的字符串。
 
+这套能力也作为独立接口暴露，无须创建 `AnswerBook`：
+
+```python
+from utils import pretty_json, to_jsonable
+
+safe_data = to_jsonable(data)  # 返回可交给 json.dumps 的副本
+text = pretty_json(data)       # 鲁棒转换并使用上述 pretty print 规则
+```
+
 ## `read_data()` 快速读取数据
 
 在题目代码中调用 `read_data("3a")`，会读取该代码文件同级 `data/` 目录中所有
