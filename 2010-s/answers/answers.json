@@ -1,0 +1,55 @@
+{
+  "q1": {
+    "decompressed": "aabbbaaabbbacabbbaabbbacaa",
+    "compressed": "aabbccdd000dd002aa"
+  },
+  "q2_replacement_counts": {
+    "c1.txt": 5,
+    "c2.txt": 6
+  },
+  "q3_dictionary_entries": 65,
+  "q4_compression": {
+    "s1.txt": {
+      "length": 74,
+      "last_10": "ases, end."
+    },
+    "s2.txt": {
+      "length": 982,
+      "last_10": "kwnkifz993"
+    }
+  },
+  "q5_decompression": {
+    "c1.txt": {
+      "length": 89,
+      "last_10": "ases, end."
+    },
+    "c2.txt": {
+      "length": 1000,
+      "last_10": "kifzzzzzzz"
+    }
+  },
+  "q6_block_round_trip": {
+    "result": "OK",
+    "source_length": 3005,
+    "source_block_lengths": [
+      1000,
+      1000,
+      1000,
+      5
+    ],
+    "compressed_block_lengths": [
+      982,
+      994,
+      511,
+      5
+    ],
+    "total_compressed_length": 2492,
+    "source_sha256": "8fada429f845b482e902f7d6710be47f83d1d97e197c79111dc2d13a92913444",
+    "compressed_block_sha256": [
+      "12b09f402c8e467da517c4c716ce5d55471968f1365d8327b0604d6073c08bd0",
+      "04840d97fc0b4a58be8062ab5ab89f1ceebfebf47d98994cb0596ffc0ef3e608",
+      "c2bebb045c199694d29020641d85b058a89aff33601f2865cb76777d82cbfd94",
+      "478b72aa41cc54cdce153ac7084a694bad898c640ce881d58757a3dd0ac439b8"
+    ]
+  }
+}

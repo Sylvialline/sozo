@@ -1,0 +1,46 @@
+{
+  "data_files": [
+    "s1.txt",
+    "s2.txt",
+    "s3.txt",
+    "c1.txt",
+    "c2.txt"
+  ],
+  "output_files": [
+    "q1.out",
+    "q2.out",
+    "q3.out",
+    "q4.out",
+    "q5.out",
+    "q6.out"
+  ],
+  "encoding": "ASCII",
+  "data_trailing_newline": false,
+  "source_lengths": {
+    "s1.txt": 89,
+    "s2.txt": 1000,
+    "s3.txt": 3005
+  },
+  "compressed_lengths": {
+    "c1.txt": 74,
+    "c2.txt": 982
+  },
+  "c2_reference_locations": [
+    0,
+    9,
+    99,
+    100,
+    9,
+    993
+  ],
+  "s3_block_lengths": [
+    1000,
+    1000,
+    1000,
+    5
+  ],
+  "independent_implementation_match": true,
+  "fuzz_cases_passed": 207,
+  "overlapping_reference_cases_passed": true,
+  "all_answers_verified": true
+}

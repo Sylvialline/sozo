@@ -1,0 +1,56 @@
+{
+  "encoding": "ASCII",
+  "trailing_newline": false,
+  "files": {
+    "s1.txt": {
+      "length": 89,
+      "kind": "source"
+    },
+    "s2.txt": {
+      "length": 1000,
+      "kind": "source"
+    },
+    "s3.txt": {
+      "length": 3005,
+      "kind": "source"
+    },
+    "c1.txt": {
+      "length": 74,
+      "kind": "compressed"
+    },
+    "c2.txt": {
+      "length": 982,
+      "kind": "compressed"
+    }
+  },
+  "fixed_source_lengths": {
+    "s1.txt": 89,
+    "s2.txt": 1000,
+    "s3.txt": 3005
+  },
+  "seeds": {
+    "s2.txt": 201005,
+    "s3.txt_second_block": 201006
+  },
+  "bug_traps": [
+    "overlapping decompression references",
+    "minimum matching location",
+    "three-digit references 000, 009, 099, 100, and 993",
+    "spaces, commas, and periods",
+    "maximum single-block length 1000",
+    "dictionary reset at 1000-character block boundaries",
+    "five-character final block and significant trailing space"
+  ],
+  "s3_block_lengths": [
+    1000,
+    1000,
+    1000,
+    5
+  ],
+  "s3_compressed_block_lengths": [
+    982,
+    994,
+    511,
+    5
+  ]
+}
