@@ -1,0 +1,106 @@
+{
+  "question_1": {
+    "input": "data/prog1.txt",
+    "output": [
+      "x",
+      "y",
+      "7",
+      "x",
+      "y",
+      "-3",
+      "-7",
+      "2",
+      "x",
+      "-1000000",
+      "0",
+      "2",
+      "y",
+      "x"
+    ]
+  },
+  "question_2": {
+    "output": [
+      10,
+      45
+    ],
+    "summary": "x increases from 1 to 10; y accumulates 1+...+9 = 45"
+  },
+  "question_3": {
+    "input": "data/prog2.txt",
+    "output": [
+      126,
+      0
+    ]
+  },
+  "question_4": {
+    "input": "data/prog3.txt",
+    "output": [
+      22,
+      40
+    ]
+  },
+  "question_5": {
+    "input": "data/prog4.txt",
+    "output": [
+      0,
+      144
+    ]
+  },
+  "question_6": {
+    "input": "data/prog5.txt",
+    "output": [
+      3000,
+      3021
+    ]
+  },
+  "regression_cases": {
+    "01_add_alias": [
+      12,
+      -2
+    ],
+    "02_cmp_true_skip": [
+      5,
+      0
+    ],
+    "03_cmp_false": [
+      7,
+      0
+    ],
+    "04_jump_from_current": [
+      4,
+      0
+    ],
+    "05_jump_variable_offset": [
+      7,
+      8
+    ],
+    "06_sub_nested": [
+      111,
+      0
+    ],
+    "07_sub_recursive": [
+      0,
+      20
+    ],
+    "08_cal_literal_argument": [
+      3,
+      0
+    ],
+    "09_cal_local_shadow": [
+      99,
+      7
+    ],
+    "10_cal_variable_offset": [
+      7,
+      5
+    ],
+    "11_ret_literal_negative": [
+      -123,
+      0
+    ],
+    "12_recursive_fibonacci": [
+      3000,
+      3021
+    ]
+  }
+}

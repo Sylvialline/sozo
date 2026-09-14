@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "source_crosscheck": {
+    "english_pages_checked": [
+      4,
+      5
+    ],
+    "japanese_pages_checked": [
+      4,
+      5
+    ],
+    "substantive_differences": [],
+    "wording_difference": "Q3: English <100 lines; Japanese <=100 lines; data uses <100"
+  },
+  "main_results": {
+    "prog2.txt": [
+      126,
+      0
+    ],
+    "prog3.txt": [
+      22,
+      40
+    ],
+    "prog4.txt": [
+      0,
+      144
+    ],
+    "prog5.txt": [
+      3000,
+      3021
+    ]
+  },
+  "regression_cases_checked": 12,
+  "property_tests_passed": 394,
+  "independent_vm_agreement": true,
+  "deterministic_regeneration": true,
+  "ascii_data": true,
+  "all_programs_under_100_lines": true,
+  "coverage": [
+    "negative and variable operands",
+    "ADD aliasing",
+    "CMP true and false branches",
+    "current-instruction-relative forward and backward JMP",
+    "variable jump/call offsets",
+    "nested and recursive SUB/BAK with LIFO returns",
+    "literal and variable function arguments",
+    "recursive CAL/RET",
+    "per-call local-variable isolation",
+    "special variables in and out",
+    "negative literal return values",
+    "unused operands"
+  ]
+}

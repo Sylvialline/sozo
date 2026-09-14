@@ -1,0 +1,12 @@
+SET x -17
+SET y 5
+ADD x y
+ADD y y
+SET x y
+ADD 100 x
+ADD x x
+ADD -2 y
+ADD y x
+SET y x
+ADD -126 y
+PRN x y

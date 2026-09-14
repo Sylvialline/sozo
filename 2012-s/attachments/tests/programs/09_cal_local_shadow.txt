@@ -1,0 +1,6 @@
+SET a 99
+CAL 3 1
+PRN a out
+JMP 0 0
+SET a 7
+RET a 0

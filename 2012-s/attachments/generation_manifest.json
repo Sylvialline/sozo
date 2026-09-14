@@ -1,0 +1,141 @@
+{
+  "generator": "scripts/generate_data.py",
+  "deterministic": true,
+  "bilingual_constraint_resolution": {
+    "english": "less than 100 lines",
+    "japanese": "at most 100 lines",
+    "applied": "all programs have fewer than 100 lines"
+  },
+  "main_files": {
+    "prog1.txt": {
+      "lines": 14,
+      "sha256": "13b6d420fc4a4c403a20cd59c403fb959bf8a97ea829bae1df50ebf0cb989f8c"
+    },
+    "prog2.txt": {
+      "lines": 12,
+      "sha256": "878003c56be4f54923f425ad935d6907c0997564641d3f10d4c589899c945700"
+    },
+    "prog3.txt": {
+      "lines": 22,
+      "sha256": "09b71ca6f260a88dc327aace8986cfd685c6272315f57185f1b65d03277347d1"
+    },
+    "prog4.txt": {
+      "lines": 17,
+      "sha256": "f5b71d789c13062b80204b039e2bc6f96af9df42f81e8d8ddc5d93a9c9c58065"
+    },
+    "prog5.txt": {
+      "lines": 25,
+      "sha256": "004461ac323235ce3d348bf23f37a168cb110c3bad17d48b4702373cd45ddd11"
+    }
+  },
+  "regression_cases": {
+    "01_add_alias": {
+      "stage": 3,
+      "expected": [
+        12,
+        -2
+      ],
+      "lines": 5,
+      "sha256": "bbb299a900dc838ab809d4f1439788252de3c735bce9ea5f48a704ecb2a9d382"
+    },
+    "02_cmp_true_skip": {
+      "stage": 4,
+      "expected": [
+        5,
+        0
+      ],
+      "lines": 4,
+      "sha256": "2fb2b5e1e82cb31165be9c05228bfcabc75f7d0a201fa43ce8905d35b545eeb8"
+    },
+    "03_cmp_false": {
+      "stage": 4,
+      "expected": [
+        7,
+        0
+      ],
+      "lines": 4,
+      "sha256": "577589ad2387da5e3750b054881d5ac4dc1db4db094687b857be0098079ca35d"
+    },
+    "04_jump_from_current": {
+      "stage": 4,
+      "expected": [
+        4,
+        0
+      ],
+      "lines": 5,
+      "sha256": "7c8f242970380dc33b34d353dd67bad60c0571b2b0e415a5bd34cc53c69951e2"
+    },
+    "05_jump_variable_offset": {
+      "stage": 4,
+      "expected": [
+        7,
+        8
+      ],
+      "lines": 4,
+      "sha256": "bdcd1e0632ce67452367a8fd1f66752cc340799869bb012bf19a496ca28180a2"
+    },
+    "06_sub_nested": {
+      "stage": 5,
+      "expected": [
+        111,
+        0
+      ],
+      "lines": 11,
+      "sha256": "4131a2cbccb8fea338ed58a8319d978e19fadcc864bc1074cced1f24c930f647"
+    },
+    "07_sub_recursive": {
+      "stage": 5,
+      "expected": [
+        0,
+        20
+      ],
+      "lines": 15,
+      "sha256": "580e592da76ef2aafe7711aa3e83931323c2d4abd2e65c026b2703417e643695"
+    },
+    "08_cal_literal_argument": {
+      "stage": 6,
+      "expected": [
+        3,
+        0
+      ],
+      "lines": 6,
+      "sha256": "64391e75b64d43d5416a205244af02eb59ea41e4dec4d94a0025aca976fa8c85"
+    },
+    "09_cal_local_shadow": {
+      "stage": 6,
+      "expected": [
+        99,
+        7
+      ],
+      "lines": 6,
+      "sha256": "e860d03ca184f411d63e98494bce455b8bd350371c4dcf92197a320801ba4b72"
+    },
+    "10_cal_variable_offset": {
+      "stage": 6,
+      "expected": [
+        7,
+        5
+      ],
+      "lines": 9,
+      "sha256": "26fee1d84576dff9ed361fdfcdaee1b33d0bb19c063928fa3a0550de633e637c"
+    },
+    "11_ret_literal_negative": {
+      "stage": 6,
+      "expected": [
+        -123,
+        0
+      ],
+      "lines": 4,
+      "sha256": "b48cc0c324842465032a62311631bf11dc7eb67471b10ad1c9dd2c57bbad1c98"
+    },
+    "12_recursive_fibonacci": {
+      "stage": 6,
+      "expected": [
+        3000,
+        3021
+      ],
+      "lines": 25,
+      "sha256": "004461ac323235ce3d348bf23f37a168cb110c3bad17d48b4702373cd45ddd11"
+    }
+  }
+}

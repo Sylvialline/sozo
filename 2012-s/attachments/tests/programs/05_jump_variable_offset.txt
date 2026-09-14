@@ -1,0 +1,4 @@
+SET off 2
+JMP off 0
+PRN 999 999
+PRN 7 8

@@ -1,0 +1,11 @@
+JMP 8 0
+ADD 1 x
+SUB 3 0
+ADD 100 x
+BAK 0 0
+ADD 10 x
+BAK 0 0
+JMP 0 0
+SET x 0
+SUB -8 0
+PRN x 0

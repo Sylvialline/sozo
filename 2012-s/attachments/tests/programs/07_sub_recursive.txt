@@ -1,0 +1,15 @@
+JMP 9 0
+CMP n 0
+JMP 2 0
+BAK 0 0
+ADD n sum
+ADD -1 n
+SUB -5 0
+ADD 1 unwind
+BAK 0 0
+SET n 5
+SET sum 0
+SET unwind 0
+SUB -11 0
+ADD unwind sum
+PRN n sum

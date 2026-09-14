@@ -1,0 +1,14 @@
+SET x -12
+SET y 5
+ADD 7 x
+ADD x y
+CMP y 12
+JMP -3 0
+CMP -7 x
+JMP 2 y
+SET x x
+ADD -1000000 y
+CMP 0 0
+JMP 2 -999
+SET y 777
+PRN x y

@@ -1,0 +1,9 @@
+SET target 4
+SET arg 5
+CAL target arg
+PRN out arg
+JMP 0 0
+JMP 0 0
+SET value in
+ADD 2 value
+RET value 0

@@ -1,0 +1,4 @@
+SET a 4
+CMP a 5
+ADD 3 a
+PRN a 0

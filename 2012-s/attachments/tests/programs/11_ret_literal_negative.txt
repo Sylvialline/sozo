@@ -1,0 +1,4 @@
+CAL 3 0
+PRN out 0
+JMP 0 0
+RET -123 ignored

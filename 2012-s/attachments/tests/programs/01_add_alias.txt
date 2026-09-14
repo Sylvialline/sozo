@@ -1,0 +1,5 @@
+SET x 7
+SET y -2
+ADD x x
+ADD y x
+PRN x y

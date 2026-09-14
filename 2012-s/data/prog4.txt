@@ -1,0 +1,17 @@
+JMP 9 0
+CMP n 0
+JMP 2 0
+BAK 123 x
+ADD n total
+ADD -1 n
+SUB -5 ignored
+ADD 1 unwind
+BAK y -999
+SET n 8
+SET total 0
+SET unwind 0
+SET entry -12
+SUB entry 314
+ADD unwind total
+ADD 100 total
+PRN n total

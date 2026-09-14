@@ -1,0 +1,4 @@
+SET a 5
+CMP a 5
+PRN 999 999
+PRN a 0

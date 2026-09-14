@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "mutants_tested": 14,
+  "mutants_caught": 14,
+  "first_killing_case": {
+    "add_overwrites_destination": "prog2 (got (-2, -126), expected (126, 0))",
+    "cmp_condition_inverted": "prog3 (got (-999, -999), expected (22, 40))",
+    "jmp_based_on_next_line": "prog3 (got (-777, -777), expected (22, 40))",
+    "sub_target_based_on_next_line": "prog4 (error: RuntimeError)",
+    "sub_returns_to_call_line": "prog4 (error: RuntimeError)",
+    "sub_returns_fifo": "prog4 (got (0, 136), expected (0, 144))",
+    "cal_target_based_on_next_line": "prog5 (error: RuntimeError)",
+    "cal_returns_to_call_line": "prog5 (error: RuntimeError)",
+    "function_variables_are_global": "prog5 (got (1, 3), expected (3000, 3021))",
+    "function_argument_in_missing": "prog5 (error: KeyError)",
+    "returned_value_not_written_to_out": "prog5 (error: KeyError)",
+    "ret_uses_second_operand": "prog5 (got (3000, 2001), expected (3000, 3021))",
+    "unused_operands_evaluated": "prog3 (error: KeyError)",
+    "variable_offsets_rejected": "prog3 (error: ValueError)"
+  }
+}
