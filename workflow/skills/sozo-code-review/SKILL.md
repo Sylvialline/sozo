@@ -1,210 +1,179 @@
 ---
 name: sozo-code-review
-description: Statically review already-written Python solutions for algorithm contests and timed programming exams. Use when the user asks for code review, simplification, Pythonic rewrites, exam-speed refactoring, readability improvements, low-cost performance cleanup, or identification of reusable exam utilities, especially for protected solve.py files. Preserve the user's algorithm unless correctness/debugging is explicitly requested, and never execute the reviewed code.
+description: Perform a structured review of an already-written Python solution for an algorithm contest or timed exam when the current request explicitly asks to review or audit the solution as a whole. When explicitly invoked alongside another task, contribute exam-oriented principles without imposing review-only restrictions. Do not treat narrow follow-up questions, design discussions, debugging, implementation or refactoring requests, or code edits as a new review unless the user asks to resume one.
 ---
 
 # Sozo Code Review
 
-Review Python exam code for faster writing, faster reading, lower mechanical-error risk, and practical reuse. Optimize for the exam room, not production engineering.
+Help the user build Python solutions that are quick to write, quick to verify,
+and hard to mistype under exam pressure. Apply the full review workflow only
+when the current request is actually a review.
 
-## Honor the repository philosophy
+## Route the current request first
 
-Treat this as the central objective:
+Review mode is **request-scoped, not conversation-scoped**. Re-evaluate the
+user's intent on every message; an earlier invocation or review does not keep
+later turns in review mode.
+
+Use **structured review mode** when the current request asks for a review or
+audit of an existing solution as a whole, or explicitly asks to continue the
+review. Examples include asking what is worth improving across a solution,
+requesting an exam-oriented code review, or invoking this skill for that
+purpose.
+
+Use **normal task mode** when the current request instead asks a narrow or
+different question, even when it follows a review. Examples include:
+
+- explaining one earlier finding or one checker error;
+- discussing a design, type annotation, API, or alternative approach;
+- asking how to implement one change;
+- debugging or checking a specific correctness concern;
+- editing, refactoring, running, testing, or profiling code;
+- asking for a code snippet rather than another whole-solution review.
+
+In normal task mode, answer or act in the format appropriate to the current
+request. Do not reuse the review headings, review disclaimer, static-only rule,
+or correctness restrictions merely because this skill appeared earlier. Reuse
+only the general exam-oriented principles below when they help.
+
+If one request combines review with implementation or dynamic validation,
+scope the review rules to the review portion and handle the other authorized
+work normally. Explicit user instructions about the current deliverable take
+priority over this skill's review defaults. System, repository, permission, and
+safety constraints remain binding.
+
+## General exam-oriented principles
+
+Apply these principles in both modes when relevant:
+
+- Prefer changes that reduce exam-time writing, reading, lookup, or mechanical
+  error risk. Avoid production-style layers and defensive scaffolding whose
+  memory cost exceeds their benefit.
+- Preserve the user's chosen algorithm or design unless the current request
+  asks to debug, replace, compare, or change it.
+- Treat unused imports, optional third-party imports, temporary logging, debug
+  prints, and commented probes as normal working residue. Do not raise cleanup
+  as an unsolicited priority, but honor an explicit cleanup request.
+- Prefer small, stable, copy-friendly interfaces and visible failures over
+  silent fallback behavior.
+- Notice reusable patterns, but do not turn a contextual solution into a
+  framework.
+
+The repository philosophy is:
 
 > 在平时的练习中积累高效 Python 编码工作流，并为未来将到来的正式考试积累足够的代码工具（比如可直接 import）和参考（比如某个写法/API 忘记了可以查先前的实现）。
 
-Apply it in two directions:
+## Honor repository and source protections
 
-- Improve the current solution without making it harder to reproduce under time pressure.
-- Notice small, stable patterns worth preserving in shared utilities or prior solutions as future references.
-
-Read repository instructions such as `AGENTS.md` before reviewing. Treat every protected exam source rule as binding. In this repository, never create, edit, reformat, move, rename, delete, stage, or commit any `solve.py`; only read and review it. The owner must apply proposed changes personally.
-
-## Keep utility-facing language consistent
+Read repository instructions such as `AGENTS.md` before acting. In this
+repository, every `solve.py` is protected exam source: never create, edit,
+reformat, move, rename, delete, stage, or commit it. Reading, reviewing,
+running, testing, and profiling are allowed when the current request calls for
+them. Put proposed changes in the conversation or a separate authorized notes
+file so the owner applies them personally.
 
 When creating or extending reusable APIs under `utils`, write concise Chinese
-docstrings for newly added public modules, classes, and functions. Document the
-contract or important convention instead of repeating the symbol name. Keep
-runtime `print` and logging messages in English so console output remains easy
-to scan across environments. Do not rewrite existing utilities solely to apply
-this convention retroactively.
+docstrings for new public modules, classes, and functions. Document the
+contract or important convention rather than repeating the symbol name. Keep
+runtime `print` and logging messages in English. Do not rewrite existing
+utilities solely to impose this convention retroactively.
 
-## Keep the review static
+## Structured review mode
 
-Never execute the reviewed code or use execution to infer correctness. Do not:
+### Evidence and correctness boundary
 
-- run Python files, imported functions, tests, examples, snippets, or REPL commands;
-- invoke an interpreter, compiler, linter, type checker, profiler, benchmark, fuzzing tool, or external validator on the code;
-- generate test data and run it;
-- import the solution to inspect it dynamically.
+Read the complete target before commenting. Read only the relevant repository
+instructions, imported local utilities, documentation, or earlier solutions
+needed to understand the code or evaluate reuse.
 
-Use only static reading. Read the complete target before commenting. Read relevant repository instructions, imported local utilities, documentation, or earlier implementations when necessary to understand an API or identify reuse. Read-only searches and version-control inspection are allowed; do not run code encountered there.
+A review is static by default. Do not execute code merely to manufacture
+confidence. If the current request explicitly asks for execution, tests,
+profiling, or dynamic validation, honor that request when permitted and clearly
+distinguish runtime evidence from static findings.
 
-If the user asks to execute or dynamically validate code in the same request, refuse that portion and continue only with the static review. Do not weaken this boundary while using this skill.
+Do not inspect or reveal problem-specific algorithm correctness unless the
+current request asks for correctness checking or debugging. Without that
+request, limit correctness comments to mechanical Python issues such as syntax,
+undefined names, incorrect API use, scope, iterator consumption, mutability,
+aliasing, and other language-semantic bugs independent of the algorithm.
 
-## Protect the user's debugging practice
+Clearly identify proposals that may change behavior. When correctness or
+debugging was requested, analyze the behavioral consequences normally rather
+than stopping at a generic warning.
 
-Treat unused imports, optional third-party imports, temporary logging, debug
-prints, and commented-out probes as normal residue of writing and debugging
-under time pressure. Do not recommend cleaning them up and do not rank such
-cleanup as an improvement. The goal is not a production-clean submission, and
-perfect cleanup can waste exam time.
+### Review priorities
 
-Do not inspect or report algorithm correctness unless the user explicitly requests correctness checking or debugging. In the default review, do not reveal:
+Rank findings by expected exam-room benefit and prefer a few high-value
+observations over an exhaustive style audit.
 
-- why the algorithm may produce a wrong answer;
-- failing algorithmic boundary cases;
-- incorrect state transitions, recurrences, graph logic, or mathematical reasoning;
-- insufficient algorithmic complexity for the problem constraints;
-- the correct algorithm, core insight, or replacement approach.
+1. **Problem-local architecture.** Identify the concrete subsystem being
+   built, such as a parser/interpreter, reversible search, simulation, or graph
+   pipeline. Assess responsibility boundaries, state ownership, data flow,
+   mutation and rollback invariants, helper APIs, and whether the model makes
+   the problem easier to reason about. Do not mistake ordinary `task1`,
+   `task2`, ... ordering or answer orchestration for meaningful architecture.
+2. **Natural Python.** Look for readable uses of built-ins, comprehensions,
+   generators, unpacking, slicing, container APIs, and relevant standard
+   library tools. Prefer recognizable idioms over code golf.
+3. **Redundancy and local readability.** Find repeated checks or calculations,
+   needless copies or conversions, unnecessary temporaries, and names that are
+   misleading or change roles. Accept conventional contest names when their
+   meaning is obvious.
+4. **Reusable exam assets.** Inspect relevant existing `utils`, nearby
+   documentation, and prior solutions before proposing a new utility. Extract
+   only patterns likely to recur, with a small stable interface and lower
+   memory cost than rewriting.
+5. **Low-cost performance.** Mention cheap improvements that preserve the core
+   algorithm, such as avoiding needless copies, using a set for repeated
+   membership, using `deque` instead of `list.pop(0)`, or joining strings.
 
-Skip suspected algorithm bugs that are unrelated to coding style. Do not hint at them indirectly through a stylistic recommendation.
+Do not recommend mandatory type hints, docstrings, exhaustive exception
+handling, design patterns, long names, or functional tricks without a clear
+exam-time payoff. Say when the existing form is already good.
 
-You may report mechanical Python problems:
+### Reuse classification
 
-- syntax errors or undefined names;
-- incorrect API usage or code that plainly raises an exception;
-- Python scope, iterator-consumption, mutability, aliasing, or shallow-copy mistakes;
-- other language-semantic bugs independent of the problem's algorithm.
+Distinguish:
 
-Mark any suggestion that might change behavior exactly as:
+- **Import-worthy tool:** stable and generic enough for `utils`.
+- **Reference-worthy pattern:** useful to find in an earlier solution but too
+  contextual for a shared API.
 
-> ⚠️ 此修改可能影响程序语义，请自行确认。
+For a reference-worthy pattern, look for a repository-level reference index.
+If the current request authorizes documentation edits, add or update a compact
+row with the situation, source and exact line, and what to borrow. Otherwise,
+propose the row only when it adds value. Use a repository-relative Markdown
+link with an exact line anchor, such as
+`[2022-8/solve.py:315](2022-8/solve.py#L315)`.
 
-Do not continue into problem-specific analysis after that warning.
+### Review output
 
-## Review in priority order
+Choose a structure that makes the findings easy to scan. For a comprehensive
+review, useful sections may include:
 
-### 1. Problem-local subsystem architecture
+- most valuable changes;
+- Python simplifications;
+- architecture and organization;
+- reusable assets;
+- focused reference rewrites.
 
-For each nontrivial problem, identify the concrete subsystem built to solve it
-and assess that subsystem's architecture. Focus on responsibility boundaries,
-state ownership, data flow, mutation and rollback invariants, helper APIs, and
-whether the chosen model makes the problem easier to reason about. Examples
-include an encoder/decoder pair, a parser/interpreter, a search engine with
-reversible state, a simulation model, or a graph-processing pipeline.
+These headings are optional, not a required template. Omit empty or irrelevant
+sections. Provide a reorganized version only when it materially helps, and
+prefer focused fragments over rewriting a whole protected source for display.
+Do not append a stock disclaimer or repeat the review format in later narrow
+follow-ups.
 
-Do not treat the ordinary ordering of independent `task1`, `task2`, and later
-solutions as a meaningful architecture finding. Do not spend the architecture
-section on `Exam`, answer orchestration, input utilities, or other repository
-infrastructure unless the user asks about them or they materially shape the
-problem-local subsystem under review.
+## Normal task mode
 
-Recommend extracting, merging, or moving responsibilities only when it reduces
-exam-time cognitive load. Inline tiny helpers that obscure rather than clarify.
-Reject production-style layers, defensive scaffolding, and abstraction that
-cost more to remember than to rewrite.
+Handle design discussion, explanation, debugging, implementation, editing,
+testing, and other follow-up work according to the current request. The skill's
+general exam-oriented principles may influence choices, but they do not impose
+a review deliverable.
 
-### 2. Natural Python
-
-Look for clear uses of built-ins, standard-library tools, comprehensions, generators, unpacking, slicing, chained comparisons, and container APIs. Pay particular attention to `enumerate`, `zip`, `min`, `max`, `sum`, `any`, `all`, `divmod`, `next`, `collections`, `itertools`, `heapq`, `bisect`, and `operator`.
-
-Prioritize a rewrite when a natural 5–10 line fragment becomes 1–3 readable lines. Avoid code golf and clever expressions that slow recognition.
-
-### 3. Redundancy
-
-Find repeated checks or calculations, unnecessary temporaries, copies, conversions, `list(...)` calls, intermediate containers, manual work already guaranteed by Python, assignments immediately returned, and conditions that combine cleanly.
-
-### 4. Local readability
-
-Actively review naming because naming uncertainty costs the user exam time.
-Identify names that are misleading, change roles in one scope, collide with
-nearby concepts, or make a non-obvious value hard to recognize. Recommend
-concrete replacements and briefly state what each replacement communicates.
-Keep names concise; accept conventional contest names such as `n`, `m`, `i`,
-`j`, `x`, `y`, `u`, `v`, `g`, `dist`, `vis`, `fa`, `ans`, `res`, and `q` when
-their role is obvious. Do not perform PEP 8-only criticism or expand every
-short name mechanically.
-
-### 5. Reusable exam assets
-
-Inspect relevant existing `utils`, nearby documentation, and prior-year implementations before proposing a new utility. Prefer reuse or a small extension over a parallel abstraction.
-
-Recommend extraction only if all are true:
-
-1. The pattern is likely to recur across multiple problems.
-2. The interface is small and stable.
-3. The memory cost is low.
-4. Calling it is clearly easier than rewriting it during an exam.
-
-Good candidates include input parsing, file I/O, graph construction, DSU, BFS/DFS scaffolds, grid directions, coordinate helpers, common mathematics, Fenwick/segment trees, and generic binary search. Do not turn one problem into a framework.
-
-When recommending a utility, distinguish:
-
-- **Import-worthy tool**: stable enough to place in `utils` and directly import.
-- **Reference-worthy pattern**: useful to find in an earlier solution but too contextual for a shared API.
-
-For every reference-worthy pattern, look for a repository-level reference
-index. If it exists and the request authorizes documentation edits, add or
-update a compact table row containing the situation, source file and relevant
-symbols or line, and what to borrow. If edits are not authorized, provide the
-proposed row in the review. If no index exists and documentation edits are
-authorized, create a small repository-level index and link it from the main
-README. Point to the real implementation rather than copying large code blocks.
-In the index's reference-implementation column, always use a clickable
-repository-relative Markdown link with an exact line anchor, such as
-`[2022-8/solve.py:315](2022-8/solve.py#L315)`. Re-check current line numbers
-after all edits and update stale anchors before finishing.
-
-### 6. Low-cost Python performance
-
-Mention only improvements that preserve the algorithmic idea and are cheap to apply: avoid needless O(n) copies, use a set for repeated membership, remove repeated conversions or attribute lookup in hot loops, stream instead of building a huge temporary list, use `deque` instead of `list.pop(0)`, and join strings instead of repeated concatenation.
-
-Do not use this section to recommend a different core algorithm or analyze the required asymptotic complexity.
-
-## Apply the exam-room decision rule
-
-For every suggestion, ask:
-
-> 这个修改能否让我在考场上写得更快、读得更快、出机械性错误的概率更低？
-
-Omit the suggestion unless the benefit is clear. Avoid mandatory type hints, docstrings, exhaustive exception handling, design patterns, long names for their own sake, gratuitous functional programming, and one-line tricks.
-
-Rank findings by expected benefit. Prefer a small number of high-value observations over an exhaustive style audit. Say explicitly when the existing form is already good.
-
-## Format the response
-
-Use these sections, omitting empty detail but preserving the headings:
-
-### 1. 最值得改的地方
-
-List only meaningful changes in descending value. For each item include:
-
-- **位置**
-- **现状**
-- **建议**
-- **收益**
-- **示例** when a short comparison helps
-
-### 2. 可以用 Python 简化的地方
-
-Highlight readable language features, built-ins, and standard-library idioms. State “不需要改” when appropriate.
-
-### 3. 架构与组织
-
-Organize this section by concrete problem or subsystem. Assess its division of
-responsibilities, state representation and ownership, data flow, mutation and
-rollback boundaries, helper interfaces, and which abstractions to retain,
-merge, or remove. For coupled components such as encoder/decoder pairs or
-search state/search procedure, discuss the architecture of the whole system,
-not just isolated functions.
-
-Do not use the file's top-to-bottom task order or its `Exam` registration as an
-architecture observation by default. Discuss repository utilities here only
-when the user explicitly wants infrastructure feedback. Include a compact
-old-name → suggested-name table when naming changes would materially reduce
-hesitation or ambiguity inside the subsystem.
-
-### 4. 值得加入 utils 的内容
-
-List only high-reuse candidates and label them import-worthy or reference-worthy. For reference-worthy items, report the repository-index row added or proposed. If none, write exactly:
-
-> 这份代码里暂时没有值得额外抽进 utils 的内容。
-
-### 5. 精简后的参考写法
-
-Provide a reorganized version only when it materially helps. Preserve the user's algorithm and keep correspondence with the original obvious. Prefer focused fragments over rewriting the entire file merely for display. Never apply the rewrite to a protected exam source.
-
-End with this sentence when correctness was not requested:
-
-> 本次按要求只进行了代码组织与 Python 写法审阅，没有检查或提示算法正确性问题。
+- Answer narrow questions directly.
+- When changes are requested and allowed, implement and verify them rather
+  than returning a review.
+- When execution or testing is requested and allowed, perform it rather than
+  citing the review's static default.
+- When correctness or debugging is requested, investigate it directly.
+- Do not apply review-only headings, warnings, or closing sentences.

@@ -24,7 +24,18 @@ PyPy 适合作为考场中的第二运行时：当算法已经确定、纯 Pytho
 若 Windows 报告缺少运行库，按官方下载页的提示安装 Microsoft VC Runtime。考前
 应在断网状态实际启动一次，不能把下载或安装留到考试现场。
 
-## 最短命令
+## VS Code 快速运行
+
+在 VS Code 中打开要运行的 Python 文件，按
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>，默认 Build Task
+`Python: Run Current File with PyPy` 会把当前文件交给仓库启动器，再由启动器定位并
+调用 PyPy。也可以从命令面板选择 `Tasks: Run Task` 后运行同名任务。
+
+任务定义见 [`../.vscode/tasks.json`](../.vscode/tasks.json)。它只提供 PyPy 的第二运行
+入口，不会改变 Python 扩展当前选择的解释器；工具栏中的 **Run Python File** 因此
+仍可作为 CPython 入口。两种运行方式都针对当前编辑器文件。
+
+## 命令行运行
 
 直接运行使用 `Exam` / `AnswerBook` 的题解：
 

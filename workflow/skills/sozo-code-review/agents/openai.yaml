@@ -1,4 +1,4 @@
 interface:
   display_name: "Sozo Code Review"
-  short_description: "面向限时 Python 编程考试的静态代码审阅助手"
-  default_prompt: "Use $sozo-code-review to statically review my Python exam solution for concise, readable, reusable coding improvements."
+  short_description: "面向限时 Python 编程考试的按需结构化代码审阅助手"
+  default_prompt: "Use $sozo-code-review to perform a structured review of this Python exam solution; treat later follow-up questions according to their current intent."

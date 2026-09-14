@@ -9,10 +9,21 @@ workflow across computers.
 PyPy without changing any `solve.py` or the machine's PowerShell execution
 policy. Child processes and the Windows console use UTF-8 while the target is
 running. See [`PYPY.md`](PYPY.md) for the portable Windows setup, comparison
-workflow, and exam-time decision rules.
+workflow, and exam-time decision rules. The workspace task in
+[`../.vscode/tasks.json`](../.vscode/tasks.json) runs the current editor file
+through this launcher with PyPy.
 
 Machine-local interpreters live under `runtimes/` and are intentionally not
 version-controlled.
+
+## VS Code workspace helpers
+
+[`../.vscode/default.code-snippets`](../.vscode/default.code-snippets) provides
+the `exam-default` Python snippet for inserting the standard `Path`, `DATA`,
+`Case`, and `Exam` file header. [`../.vscode/tasks.json`](../.vscode/tasks.json)
+registers `Python: Run Current File with PyPy` as the default Build Task, so
+<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> runs the active file with PyPy while
+the Python extension's **Run Python File** remains the CPython entry point.
 
 ## Performance profiling
 

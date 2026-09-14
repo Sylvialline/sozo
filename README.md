@@ -48,10 +48,16 @@ python -u .\2025-8\solve.py
 `answer.json` 时使用 `exam.execute(output=True, only=task3)`。`Exam` 负责题组选择、
 数据读取、计时、日志和答案输出。
 
-在 VS Code 中打开某个题目的 `solve.py` 后，也可以按
-<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 运行当前题目的全部数据。
+VS Code 工作区提供两个现场入口：
 
-算法已经来不及优化、纯 Python 长任务需要尝试 PyPy 时，使用同一个仓库启动器：
+- 在新建的 Python 文件中输入 `exam-default` 并确认代码补全，可插入 `Path`、`DATA`、
+  `Case` 和 `Exam` 的默认文件头；光标会停在文件头末尾继续编写。
+- Python 扩展内置的 **Run Python File** 继续用当前选择的 CPython；需要用 PyPy 运行
+  当前编辑器文件时，按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>。默认 Build Task
+  会调用仓库启动器并明确显示实际使用的 PyPy 路径与总耗时。也可从命令面板选择
+  `Tasks: Run Task` → `Python: Run Current File with PyPy`。
+
+命令行中需要尝试 PyPy 时，使用同一个仓库启动器：
 
 ```powershell
 # 直接运行使用 Exam / AnswerBook 的题解
@@ -109,6 +115,7 @@ python samples/run_all_samples.py
 ├── AGENTS.md          # solve.py 的保护规则
 ├── README.md          # 仓库理念和现场用法
 ├── REFERENCE_PATTERNS.md # 历年题解中的参考型代码索引
+├── .vscode/           # Python 默认片段与当前文件的 PyPy 运行任务
 ├── workflow/          # 运行时、性能诊断手册与跨电脑 skill 资产
 ├── samples/           # Python 考场速查、完整示例与批量自检
 ├── utils/             # 已验证的通用模块及 QUICK_REFERENCE.md
@@ -465,8 +472,10 @@ python .\workflow\run_python.py pypy .\workflow\run_python.py --help
 
 同时确认：
 
-- `python` 命令和 VS Code 默认任务可以直接运行；
-- 仓库启动器能够找到已解压的 PyPy，并显示所选解释器；
+- `python` 命令和 Python 扩展内置的 **Run Python File** 可以用 CPython 直接运行；
+- 在空 Python 文件中输入 `exam-default` 能展开默认文件头；
+- 打开一个 Python 文件后，<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 能通过默认
+  Build Task 找到已解压的 PyPy，并显示所选解释器；
 - 仓库、解释器和所需资料均位于本机；
 - `utils` 没有未安装的第三方依赖；
 - 常用命令不依赖 shell 历史或网络搜索；
