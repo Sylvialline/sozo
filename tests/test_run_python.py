@@ -1,14 +1,16 @@
+import os
 import subprocess
 import sys
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from workflow.run_python import (
     UTF8_CODE_PAGE,
     find_pypy,
     utf8_console,
-    utf8_environment,
+    child_environment,
 )
 
 
@@ -17,11 +19,24 @@ RUNNER = ROOT / "workflow" / "run_python.py"
 
 
 class RunPythonTests(unittest.TestCase):
-    def test_utf8_environment_sets_python_io_flags(self):
-        environment = utf8_environment()
+    def test_child_environment_sets_python_io_flags(self):
+        environment = child_environment()
 
         self.assertEqual(environment["PYTHONIOENCODING"], "utf-8")
         self.assertEqual(environment["PYTHONUTF8"], "1")
+
+    def test_child_environment_prepends_repository_and_preserves_existing_path(self):
+        with patch.dict(os.environ, {"PYTHONPATH": "existing-path"}):
+            environment = child_environment()
+            self.assertEqual(
+                environment["PYTHONPATH"],
+                str(ROOT) + os.pathsep + "existing-path",
+            )
+            self.assertEqual(os.environ["PYTHONPATH"], "existing-path")
+
+    def test_child_environment_without_existing_python_path(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(child_environment()["PYTHONPATH"], str(ROOT))
 
     def test_cpython_child_writes_utf8(self):
         self._assert_runtime_writes_utf8("python")
@@ -53,6 +68,7 @@ class RunPythonTests(unittest.TestCase):
             script = Path(temp_dir) / "encoding_probe.py"
             script.write_text(
                 "import os, sys\n"
+                "from utils import Exam\n"
                 "print(sys.stdout.encoding)\n"
                 "print(os.environ['PYTHONIOENCODING'])\n"
                 "print(os.environ['PYTHONUTF8'])\n"

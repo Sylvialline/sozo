@@ -9,9 +9,9 @@ import sys
 from pathlib import Path
 
 try:
-    from .run_python import utf8_console, utf8_environment
+    from .run_python import utf8_console, child_environment
 except ImportError:
-    from run_python import utf8_console, utf8_environment
+    from run_python import utf8_console, child_environment
 
 
 DEFAULT_TOP = 15
@@ -58,7 +58,7 @@ def _run(command: list[str], script: Path) -> int:
     return subprocess.run(
         command,
         cwd=script.parent,
-        env=utf8_environment(),
+        env=child_environment(),
     ).returncode
 
 

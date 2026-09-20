@@ -12,15 +12,23 @@ from time import perf_counter
 from typing import Iterator
 
 
-RUNTIME_DIRECTORY = Path(__file__).resolve().parent / "runtimes"
+WORKFLOW_DIRECTORY = Path(__file__).resolve().parent
+REPOSITORY_ROOT = WORKFLOW_DIRECTORY.parent
+RUNTIME_DIRECTORY = WORKFLOW_DIRECTORY / "runtimes"
 PYPY_EXECUTABLE = re.compile(r"pypy3(?:\.\d+)?(?:\.exe)?")
 UTF8_CODE_PAGE = 65001
 
 
-def utf8_environment() -> dict[str, str]:
+def child_environment() -> dict[str, str]:
     environment = os.environ.copy()
     environment["PYTHONIOENCODING"] = "utf-8"
     environment["PYTHONUTF8"] = "1"
+    inherited_python_path = environment.get("PYTHONPATH")
+    environment["PYTHONPATH"] = os.pathsep.join(
+        path
+        for path in (str(REPOSITORY_ROOT), inherited_python_path)
+        if path
+    )
     return environment
 
 
@@ -128,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
             return subprocess.run(
                 command,
                 cwd=script.parent,
-                env=utf8_environment(),
+                env=child_environment(),
             ).returncode
         except KeyboardInterrupt:
             print("[interrupted] Ctrl+C", file=sys.stderr, flush=True)
