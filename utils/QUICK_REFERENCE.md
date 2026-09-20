@@ -1,5 +1,7 @@
 # `AnswerBook` / `Exam` 现场速查手册
 
+数学复用见 [`EXACT_MATH.md`](EXACT_MATH.md)：`Fraction`、取整、`count_integers`、`Qn`、`IntFlag`。
+
 函数对拍另见 [`STRESS.md`](STRESS.md)：`stress(fast, slow, generate, trials=1000, seed=0)`。
 自动保存并优先重测上次反例；修改代码后可用 `stress(fast, slow)` 只验证该反例。
 

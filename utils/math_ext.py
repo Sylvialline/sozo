@@ -1,7 +1,18 @@
-"""常用整数因数工具。"""
+"""常用整数因数与区间计数工具。"""
 
 import math
 from numbers import Integral
+
+
+def count_integers(lo, hi, *, left_closed: bool = True, right_closed: bool = True) -> int:
+    """统计有限区间中的整数；默认闭区间，空区间返回 0。
+
+    端点只需支持 math.floor/ceil，可使用 int、float、Fraction 或 Qn。
+    float 按已经存储的数值处理，不补 epsilon；精确边界请传 Fraction 或 Qn。
+    """
+    left = math.ceil(lo) if left_closed else math.floor(lo) + 1
+    right = math.floor(hi) if right_closed else math.ceil(hi) - 1
+    return max(0, right - left + 1)
 
 
 def _positive_int(n: int) -> int:

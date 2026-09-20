@@ -90,6 +90,7 @@ python samples/run_all_samples.py --pattern 13_example_tasks --show-output
 | 写抽象类、继承和覆写 | [`abstract_base_class.py`](10_object_oriented/abstract_base_class.py)、[`inheritance_and_override.py`](10_object_oriented/inheritance_and_override.py) |
 | 排查覆写参数名/数量问题 | [`override_signature_pitfalls.py`](10_object_oriented/override_signature_pitfalls.py) |
 | 做简单线性拟合 | [`least_squares_without_numpy.py`](08_math_and_statistics/least_squares_without_numpy.py) |
+| 精确读取分数、整数取整、根式判边、位标志集合 | [`Fraction / Qn / IntFlag 速查`](../utils/EXACT_MATH.md) |
 | 批量运行测试文件 | [`batch_test_runner.py`](11_debugging_and_testing/batch_test_runner.py) |
 
 ## 重要入口文件

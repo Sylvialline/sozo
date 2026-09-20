@@ -337,6 +337,25 @@ factor_pairs(12, include_swapped=True)
 
 两个函数都要求 `n` 为正整数，并正确去除完全平方数平方根位置的重复项。
 
+## 精确根式与区间整数计数
+
+```python
+from functools import partial
+from math import floor
+from utils import Qn, count_integers
+
+Q3 = partial(Qn, 3)        # 固定 n，构造 a + b√3
+root = Q3(0, 1)
+assert floor(1 + 2 * root) == 4
+assert count_integers(-root, root) == 3
+assert count_integers(1, 1, left_closed=False) == 0
+```
+
+`Qn` 使用有理系数，精确完成四则运算、比较、`floor/ceil`；`n` 限定为正的非完全平方整数。
+`count_integers` 支持开闭端点，空区间返回零。`Fraction` 输入、负数取整、`isqrt` 和
+`IntFlag` 的考场写法集中在 [`utils/EXACT_MATH.md`](utils/EXACT_MATH.md)，原题索引见
+[`REFERENCE_PATTERNS.md`](REFERENCE_PATTERNS.md)。
+
 ## `DSU` / `KeyedDSU`：整数与任意键并查集
 
 节点是连续整数 `0 .. n-1` 时使用数组实现的 `DSU(n)`；节点是字符串、元组等任意
