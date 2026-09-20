@@ -467,6 +467,15 @@ weighted_dist = wg.dijkstra_distances("a")  # 按非负权值计算
 `dijkstra_distances(start)` 用于带权图，按非负权值返回最短距离；两个方法都省略不可达
 节点，起点不存在时抛出 `KeyError`。
 
+## 函数对拍
+
+`stress(fast, slow, generate, trials=1000, seed=0)` 用随机小数据比较候选解法与暴力解法，
+首次差异或异常就报告可复现输入。生成器接收独立 `rng`，返回一组参数 tuple；
+也可以直接传手工用例或穷举用例。两个解法各取独立深拷贝，支持原地修改输入。
+反例自动保存在脚本旁的 `.stress/`，修改代码后重跑会优先重测；`stress(fast, slow)`
+则只重测已保存的反例，无需手工复制数据。
+完整示例、反例复现和自定义比较见 [`utils/STRESS.md`](utils/STRESS.md)。
+
 ## `utils/` 收录标准
 
 一个模块进入 `utils/` 前，应同时满足：

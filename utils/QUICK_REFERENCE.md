@@ -1,5 +1,8 @@
 # `AnswerBook` / `Exam` 现场速查手册
 
+函数对拍另见 [`STRESS.md`](STRESS.md)：`stress(fast, slow, generate, trials=1000, seed=0)`。
+自动保存并优先重测上次反例；修改代码后可用 `stress(fast, slow)` 只验证该反例。
+
 这份手册只覆盖答案执行与编排相关的高频接口。选择原则是：先用能清楚表达题目结构的
 最高层接口；遇到不规则任务时再向下退一层。
 

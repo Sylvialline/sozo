@@ -17,6 +17,7 @@ output/
 *.lprof
 profile_output*.txt
 answer.json
+.stress/
 
 .DS_Store
 Thumbs.db

@@ -6,6 +6,7 @@ from .graph import Condensation, Graph
 from .math_ext import divisors, factor_pairs
 from .priority_queue import PriorityQueue
 from .selection import nth, nth_element
+from .stress import StressFailure, stress
 
 __all__ = [
     "AnswerBook",
@@ -21,6 +22,8 @@ __all__ = [
     "PriorityQueue",
     "Rows",
     "Series",
+    "StressFailure",
+    "stress",
     "divisors",
     "factor_pairs",
     "nth",
