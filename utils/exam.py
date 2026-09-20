@@ -10,7 +10,7 @@ from typing import Any
 
 from ._caller import caller_directory
 from .answer_book import AnswerBook
-from .data_io import read_data, read_files
+from .data_io import read_data, read_data_file, read_files
 
 
 class _UseDefaultTimeout:
@@ -32,6 +32,44 @@ INHERIT = _Inherit.VALUE
 
 Reader = Callable[[str], Any]
 Parser = Callable[[str], Any]
+Calls = Callable[[Any], Iterable[Any]]
+
+
+class Rows:
+    """Turn non-empty whitespace-separated text lines into task arguments.
+
+    Each converter handles one field.  With no converters, every non-empty
+    line produces one argument-free invocation, which is useful when rows are
+    only repeated query markers.
+    """
+
+    def __init__(self, *converters: Callable[[str], Any]) -> None:
+        if any(not callable(converter) for converter in converters):
+            raise TypeError("Rows 的每个转换器都必须是可调用对象")
+        self.converters = converters
+
+    def __call__(self, text: str) -> Iterator[tuple[Any, ...]]:
+        if not isinstance(text, str):
+            raise TypeError("Rows 只能解析字符串")
+
+        for line_number, raw_line in enumerate(text.splitlines(), start=1):
+            line = raw_line.strip()
+            if not line:
+                continue
+            if not self.converters:
+                yield ()
+                continue
+
+            fields = line.split()
+            if len(fields) != len(self.converters):
+                raise ValueError(
+                    f"第 {line_number} 行需要 {len(self.converters)} 个字段，"
+                    f"实际得到 {len(fields)} 个"
+                )
+            yield tuple(
+                converter(field)
+                for converter, field in zip(self.converters, fields)
+            )
 
 
 def _validate_parser(
@@ -47,7 +85,11 @@ def _validate_reader(reader: Reader | _Inherit) -> None:
 
 
 def _bind_reader(reader: Reader, base_dir: Path) -> Reader:
-    if reader is read_data or reader is read_files:
+    if (
+        reader is read_data
+        or reader is read_data_file
+        or reader is read_files
+    ):
         return partial(reader, base_dir=base_dir)
     return reader
 
@@ -123,6 +165,31 @@ def _execute_case(
     return task(*resolved_args)
 
 
+def _execute_batch(
+    task: Callable[..., Any],
+    source: Input,
+    calls: Calls,
+    reader: Reader,
+    parser: Parser | None,
+    base_dir: Path,
+) -> Any:
+    data = _resolve_input(source, reader, parser, base_dir)
+
+    invocations = calls(data)
+    if isinstance(invocations, (str, bytes, bytearray, Mapping)):
+        raise TypeError("Batch.calls 必须返回多组调用参数，不能返回字符串或映射")
+    try:
+        iterator = iter(invocations)
+    except TypeError as error:
+        raise TypeError("Batch.calls 必须返回可迭代对象") from error
+
+    results = []
+    for invocation in iterator:
+        call_args = invocation if isinstance(invocation, tuple) else (invocation,)
+        results.append(task(*call_args))
+    return results
+
+
 @dataclass(frozen=True, init=False)
 class Case:
     """One labeled invocation of a task."""
@@ -162,6 +229,48 @@ class Case:
             ),
         )
         object.__setattr__(self, "files", files)
+        object.__setattr__(self, "timeout", timeout)
+        object.__setattr__(self, "reader", reader)
+        object.__setattr__(self, "parser", parser)
+
+
+@dataclass(frozen=True, init=False)
+class Batch:
+    """One input source expanded into multiple invocations of a task."""
+
+    label: str
+    source: Input
+    calls: Calls
+    timeout: float | None | _UseDefaultTimeout
+    reader: Reader | _Inherit
+    parser: Parser | None | _Inherit
+
+    def __init__(
+        self,
+        label: str,
+        source: str | Input,
+        /,
+        calls: Calls,
+        *,
+        timeout: float | None | _UseDefaultTimeout = _USE_DEFAULT_TIMEOUT,
+        reader: Reader | _Inherit = INHERIT,
+        parser: Parser | None | _Inherit = INHERIT,
+    ) -> None:
+        if not isinstance(label, str) or not label:
+            raise ValueError("Batch.label 必须是非空字符串")
+        if not isinstance(source, (str, Input)):
+            raise TypeError("Batch.source 必须是文件名字符串或 Input")
+        if not callable(calls):
+            raise TypeError("Batch.calls 必须是可调用对象")
+        _validate_reader(reader)
+        _validate_parser(parser)
+        object.__setattr__(self, "label", label)
+        object.__setattr__(
+            self,
+            "source",
+            Input(source) if isinstance(source, str) else source,
+        )
+        object.__setattr__(self, "calls", calls)
         object.__setattr__(self, "timeout", timeout)
         object.__setattr__(self, "reader", reader)
         object.__setattr__(self, "parser", parser)
@@ -247,9 +356,10 @@ class Exam:
 
     def __init__(
         self,
-        reader: Reader,
+        reader: Reader = read_data_file,
         *,
         timeout: float | None = None,
+        show_time: bool = False,
         show_log: bool = True,
         book: AnswerBook | None = None,
         parser: Parser | None = None,
@@ -274,43 +384,51 @@ class Exam:
             if book is not None
             else AnswerBook(
                 timeout=timeout,
+                show_time=show_time,
                 show_log=show_log,
                 base_dir=resolved_base_dir,
             )
         )
-        self._entries: list[tuple[Callable[..., Any], Case]] = []
+        self._entries: list[tuple[Callable[..., Any], Case | Batch]] = []
         self._executed = False
 
     def add(
         self,
         task: Callable[..., Any],
         /,
-        *groups: Case | Series,
+        *groups: Case | Batch | Series,
     ) -> Exam:
+        """注册显式任务组；省略时按函数签名生成默认 Series。"""
         if self._executed:
-            raise RuntimeError("Exam 执行后不能继续添加 case")
+            raise RuntimeError("Exam 执行后不能继续添加任务项")
         if not callable(task):
             raise TypeError("task 必须是可调用对象")
         if not groups:
-            raise ValueError("每个 task 至少需要一个 Case 或 Series")
+            groups = (self._default_series(task),)
 
         for group in groups:
-            if isinstance(group, Case):
+            if isinstance(group, (Case, Batch)):
                 self._entries.append((task, group))
             elif isinstance(group, Series):
                 self._entries.extend((task, case) for case in group)
             else:
-                raise TypeError("case 组必须是 Case 或 Series")
+                raise TypeError("任务组必须是 Case、Batch 或 Series")
         return self
+
+    def add_once(self, task: Callable[[], Any], /) -> Exam:
+        """以函数名为 label，注册一次无参数调用。"""
+        if not callable(task):
+            raise TypeError("task 必须是可调用对象")
+        label = getattr(task, "__name__", None)
+        if not isinstance(label, str) or not label:
+            raise ValueError("add_once 要求 task 具有非空 __name__")
+        return self.add(task, Case(label))
 
     @staticmethod
     def _default_series(task: Callable[..., Any]) -> Series:
-        name = getattr(task, "__name__", "")
-        if not name.startswith("task") or len(name) == 4:
-            raise ValueError(
-                "@exam.task 默认注册要求函数名形如 task1；"
-                "其他名称请显式传入 Case 或 Series"
-            )
+        name = getattr(task, "__name__", None)
+        if not isinstance(name, str) or not name:
+            raise ValueError("默认注册要求 task 具有非空 __name__")
 
         parameters = tuple(inspect.signature(task).parameters.values())
         if any(
@@ -318,8 +436,8 @@ class Exam:
             for parameter in parameters
         ):
             raise TypeError(
-                "@exam.task 无法推导 *args 对应的输入文件数量；"
-                "请显式传入 Case 或 Series"
+                "默认注册无法推导 *args 对应的输入文件数量；"
+                "请显式传入 Case、Batch 或 Series"
             )
         if any(
             parameter.kind is inspect.Parameter.KEYWORD_ONLY
@@ -327,8 +445,8 @@ class Exam:
             for parameter in parameters
         ):
             raise TypeError(
-                "@exam.task 无法为必需的仅关键字参数提供输入；"
-                "请显式传入 Case 或 Series"
+                "默认注册无法为必需的仅关键字参数提供输入；"
+                "请显式传入 Case、Batch 或 Series"
             )
 
         input_count = sum(
@@ -339,21 +457,21 @@ class Exam:
             )
             for parameter in parameters
         )
-        return Series(name[4:], input_count=input_count)
+        return Series(name, input_count=input_count)
 
     def task(
         self,
-        first: Callable[..., Any] | Case | Series,
+        first: Callable[..., Any] | Case | Batch | Series,
         /,
-        *groups: Case | Series,
+        *groups: Case | Batch | Series,
     ) -> Any:
-        """Register a task as ``@exam.task`` or ``@exam.task(...)``."""
+        """用裸装饰器自动推导 Series，或显式指定任务组。"""
         if callable(first):
             if groups:
                 raise TypeError(
-                    "直接传入 task 函数时不能再附加 Case 或 Series"
+                    "直接传入 task 函数时不能再附加 Case、Batch 或 Series"
                 )
-            self.add(first, self._default_series(first))
+            self.add(first)
             return first
 
         configured_groups = (first, *groups)
@@ -367,7 +485,7 @@ class Exam:
     def _select_entries(
         self,
         only: Callable[..., Any] | Iterable[Callable[..., Any]] | None,
-    ) -> list[tuple[Callable[..., Any], Case]]:
+    ) -> list[tuple[Callable[..., Any], Case | Batch]]:
         if only is None:
             return self._entries
 
@@ -399,21 +517,21 @@ class Exam:
             raise ValueError(f"only 中包含未注册的 task: {names}")
 
         return [
-            (task, case)
-            for task, case in self._entries
+            (task, entry)
+            for task, entry in self._entries
             if any(task is selected_task for selected_task in selected)
         ]
 
     @staticmethod
     def _validate_labels(
-        entries: Iterable[tuple[Callable[..., Any], Case]],
+        entries: Iterable[tuple[Callable[..., Any], Case | Batch]],
     ) -> None:
         seen: set[str] = set()
         duplicates: list[str] = []
-        for _, case in entries:
-            if case.label in seen and case.label not in duplicates:
-                duplicates.append(case.label)
-            seen.add(case.label)
+        for _, entry in entries:
+            if entry.label in seen and entry.label not in duplicates:
+                duplicates.append(entry.label)
+            seen.add(entry.label)
         if duplicates:
             labels = ", ".join(map(repr, duplicates))
             raise ValueError(f"Exam 中存在重复答案编号: {labels}")
@@ -432,38 +550,42 @@ class Exam:
         self._validate_labels(entries)
         self._executed = True
 
-        for task, case in entries:
+        for task, entry in entries:
             reader = (
                 self.reader
-                if case.reader is INHERIT
-                else _bind_reader(case.reader, self._base_dir)
+                if entry.reader is INHERIT
+                else _bind_reader(entry.reader, self._base_dir)
             )
             parser = (
                 self.parser
-                if case.parser is INHERIT
-                else case.parser
+                if entry.parser is INHERIT
+                else entry.parser
             )
-            if case.timeout is _USE_DEFAULT_TIMEOUT:
-                self.book.run(
-                    case.label,
-                    _execute_case,
+            if isinstance(entry, Batch):
+                run_args = (
+                    entry.label,
+                    _execute_batch,
                     task,
-                    case.args,
+                    entry.source,
+                    entry.calls,
                     reader,
                     parser,
                     self._base_dir,
                 )
             else:
-                self.book.run(
-                    case.label,
+                run_args = (
+                    entry.label,
                     _execute_case,
                     task,
-                    case.args,
+                    entry.args,
                     reader,
                     parser,
                     self._base_dir,
-                    timeout=case.timeout,
                 )
+            if entry.timeout is _USE_DEFAULT_TIMEOUT:
+                self.book.run(*run_args)
+            else:
+                self.book.run(*run_args, timeout=entry.timeout)
 
         if output is _PRINT_TO_STDOUT:
             self.book.print_json(

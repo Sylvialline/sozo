@@ -12,7 +12,7 @@
 			"# OUTPUT = HERE / \"output\"",
 			"# OUTPUT.mkdir(exist_ok=True)",
 			"",
-			"from utils import Case, Exam",
+			"from utils import Batch, Case, Exam, Rows",
 			"$0"
 		],
 		"description": "Insert the default Python exam file setup"

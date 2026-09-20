@@ -7,9 +7,11 @@
 | --- | --- | --- |
 | `AnswerBook` | 参数、输入和执行顺序完全不规则 | 最高 |
 | `Exam.add` + `Case` | case 不规则，但仍希望统一读取、计时和输出 | 高 |
+| `Exam.add` + `Batch` | 一个输入文件包含多组独立调用 | 高 |
 | `Exam.add` + `Series` | `a/b/c` 等规则题组 | 中 |
-| `@exam.task(...)` | 用装饰器就近声明显式 `Case` / `Series` | 低 |
-| `@exam.task` | `task1(data)` 这类完全规则的题组 | 最低、最短 |
+| `Exam.add_once(task)` | 无参数 task 只执行一次，label 使用函数名 | 低 |
+| `@exam.task(...)` | 用装饰器声明显式 `Case` / `Batch` / `Series` | 低 |
+| `@exam.task` / `Exam.add(task)` | 按函数参数推导规则题组，函数名作为 label 前缀 | 最低、最短 |
 
 ## 1. `AnswerBook`：逐项手动执行
 
@@ -24,17 +26,17 @@ book.run("1.b", task1, 100, 150, other_data)
 book.print_json()
 ```
 
-`run(label, task, *args, **kwargs)` 原样调用 `task(*args, **kwargs)`，计时后把答案保存到
-`book.answers[label]`。成功项的固定结构是：
+`run(label, task, *args, **kwargs)` 原样调用 `task(*args, **kwargs)`，并把答案保存到
+`book.answers[label]`。默认结构是：
 
 ```python
 {
     "result": task_return_value,
-    "time": elapsed_seconds,
 }
 ```
 
-task 返回字典时也会完整放在 `result` 下，不会和 `time` 混在同一层。
+需要耗时时显式使用 `AnswerBook(show_time=True)`，答案中会增加
+`"time": elapsed_seconds`。task 返回字典时也会完整放在 `result` 下。
 
 ### 超时和日志
 
@@ -50,10 +52,12 @@ book.run("1.c", task1, data, timeout=None)  # 单项关闭超时
 ```python
 {
     "timeout": True,
-    "time": elapsed_seconds,
     "timeout_limit": configured_seconds,
 }
 ```
+
+`show_time=True` 时，超时答案也会增加 `time`。没有启用超时且 `show_time=False` 时，
+task 直接在当前进程运行，并且不会读取计时器；只有 `timeout` 会要求使用子进程。
 
 默认向 stderr 输出 `START`、`DONE`、`TIMEOUT`、`FAILED` 日志；不需要时使用
 `AnswerBook(show_log=False)`。普通异常会记录失败日志并重新抛出，不会伪装成答案。
@@ -105,7 +109,21 @@ text = pretty_json(data)       # 自动转换，并使用 AnswerBook 的排版�
 
 ## 2. `Exam`：统一读取、执行和输出
 
-`Exam` 把输入读取也纳入 `AnswerBook` 的计时、异常和超时边界。
+`Exam` 把输入读取也纳入 `AnswerBook` 的异常和超时边界；传入 `show_time=True` 时读取、
+解析和 task 调用会作为一个整体计时。
+
+最短用法不需要 reader。默认 reader 按完整文件名读取同级 `data/`：
+
+```python
+from utils import Case, Exam
+
+exam = Exam()
+exam.add(task1, Case("1", files=("q1.txt",)))  # data/q1.txt
+```
+
+它只接受 `data/` 内的相对路径，精确读取一个 UTF-8 文件；缺失时抛出
+`FileNotFoundError`。需要文件名包含匹配或一次读取多个文件时，再显式使用旧的
+`read_data`：
 
 ```python
 from utils import Exam, read_data
@@ -132,8 +150,8 @@ read_data("all")
 # {"a.txt": [1, 2], "b.txt": [3, 4]}
 ```
 
-同一份试题通常只需要一个全局 parser。特殊格式可在 `Case` 或 `Series` 上覆盖；显式传
-`parser=None` 会为该组关闭全局解析：
+同一份试题通常只需要一个全局 parser。特殊格式可在 `Case`、`Batch` 或 `Series` 上
+覆盖；显式传 `parser=None` 会为该组关闭全局解析：
 
 ```python
 def parse_colon(data: str) -> list[int]:
@@ -148,7 +166,7 @@ Series("7", parser=parse_colon)                  # 整组覆盖
 reader 和 parser 都能逐层设置，且二者分别独立继承：
 
 ```text
-Input > Case/Series > Exam
+Input > Case/Batch/Series > Exam
 ```
 
 省略某项表示继承；`parser=None` 表示明确关闭解析。覆盖 reader 不会自动关闭 parser。
@@ -262,7 +280,8 @@ Case(
 `Input("")` 同样表示读取 `data/` 下的全部文件。
 
 `Input.name` 是交给 reader 的不透明 selector，不内建路径或 glob 语义。单个 Input 可只
-覆盖 reader、只覆盖 parser，或同时覆盖二者；未设置的字段继续继承 Case/Series/Exam。
+覆盖 reader、只覆盖 parser，或同时覆盖二者；未设置的字段继续继承
+Case/Batch/Series/Exam。
 
 ### 根目录相对路径与 glob：`read_files`
 
@@ -285,7 +304,31 @@ exam.add(task_nested, Case("nested", files=("data/data*.txt",)))
 改变读取位置。也可通过 `Exam(..., base_dir=path)` 显式指定根目录。`read_data` 的旧行为
 保持不变，仍专门读取同级 `data/` 并使用文件名子串匹配。
 
-## 4. `Series`：批量生成规则 case
+## 4. `Batch`：一个输入执行多次 task
+
+`Batch` 与 `Case` 分开：`Case` 永远只调用一次 task；`Batch` 只接受一个输入源，第三个
+参数 `calls` 将读取、解析后的值转换成多组完整的 task 位置参数。每次返回值按顺序
+组成 list：
+
+```python
+from utils import Batch, Rows
+
+Batch("6", "q6.txt", Rows(str, int))
+# 依次执行 task6(d, n)，最终 result 是所有返回值组成的 list
+```
+
+`calls` 产出的 tuple 会展开成位置参数；标量作为一个位置参数；空 tuple 调用无参数
+task。`Rows` 跳过空白行，把每个非空白行按空白切列，并用给出的转换器逐列处理。
+`Rows(float)` 适合单列小数，`Rows(str, int)` 适合 `d n`，`Rows()` 则让每个非空白行
+触发一次无参数调用。若 Batch 配置了 `parser`，`calls` 收到的是 parser 处理后的值。
+自定义 `calls` 在启用超时时要定义在模块顶层以支持 `pickle`；`Rows` 本身可直接用于
+超时模式。
+
+`Batch` 没有普通参数和 `files`，`calls` 必须产出每次 task 调用的全部参数。需要组合
+多个物理文件时，使用一个明确的自定义 reader，让 `Batch.source` 仍表示一个批输入；
+框架不会猜测多个文件应当 zip、广播还是做笛卡尔积。
+
+## 5. `Series`：批量生成规则 case
 
 ### 默认 `a/b/c`，每项一份输入
 
@@ -344,11 +387,13 @@ task(100, 200, reader("2b"))
 映射值必须是 tuple。也可以用 `Series("7", "abcd")` 自定义 variant 集合。整组可用
 `timeout=` 设置同一个单项超时策略，用 `parser=` 覆盖或关闭全局 parser。
 
-## 5. `Exam.add`：显式注册
+## 6. `Exam.add`：显式注册
 
 `add` 最适合动态组织或不想使用装饰器的场景：
 
 ```python
+exam.add_once(summary)  # 调用 summary() 一次，label 为 "summary"
+exam.add(solve)  # 等价于裸 @exam.task，自动生成 Series("solve", ...)
 exam.add(task1, Series("1"))
 exam.add(
     task4,
@@ -357,10 +402,13 @@ exam.add(
 )
 ```
 
-同一个 task 后可以同时放多个 `Case` / `Series`。`add` 返回 `exam` 自身，也可以链式
-书写，但现场通常分行更容易检查。
+`add_once(task)` 专门表示一次无参数调用，label 直接采用函数名。省略 group 的普通
+`add(task)` 则与裸 `@exam.task` 使用同一套自动推导：完整函数名作为
+`Series.prefix`，位置参数数量作为 `input_count`。函数名没有 `task...` 格式要求。
+同一个 task 后也可以同时放多个显式 `Case` / `Batch` / `Series`。`add` 返回 `exam`
+自身，可以链式书写，但现场通常分行更容易检查。
 
-## 6. `@exam.task(...)`：装饰器式显式注册
+## 7. `@exam.task(...)`：装饰器式显式注册
 
 把注册规则放在函数旁边：
 
@@ -380,33 +428,29 @@ def task4(left, right):
 
 装饰器返回原函数，因此仍可直接调用 `task1(...)` 做小样例调试。
 
-## 7. `@exam.task`：完全自动推导
+## 8. `@exam.task`：自动推导规则题组
 
-当题组严格遵循命名规则时使用最短写法：
+所有位置参数都对应输入文件时使用最短写法：
 
 ```python
 @exam.task
-def task1(data):
-    ...
-
-
-@exam.task
-def task3(left, right):
-    ...
+def solve(data):
+    return parse_and_solve(data)
 ```
 
 推导规则：
 
-- 函数名必须形如 `task1`、`task7`；`task` 后面的文本成为 `Series.prefix`；
+- 完整函数名直接成为 `Series.prefix`，不要求形如 `task1`；
 - 默认生成 `a/b/c` 三项；
 - 位置参数数量就是 `input_count`；
-- `task3(left, right)` 因此读取 `3a1/3a2`、`3b1/3b2`、`3c1/3c2`；
-- `*args` 和必需的仅关键字参数无法自动推导，应改用显式 `Case` / `Series`。
+- `solve(data)` 因此读取 `solvea/solveb/solvec`；
+- `solve(left, right)` 读取 `solvea1/solvea2`、`solveb1/solveb2`、`solvec1/solvec2`；
+- `*args` 和必需的仅关键字参数无法自动推导，应改用显式 `Case` / `Batch` / `Series`。
 
 只要有普通参数、特殊标签、不同 variant、非标准文件名或自定义超时，就使用
-`@exam.task(...)`，不要勉强依赖推导。
+`@exam.task(...)`。
 
-## 8. 只调试指定 task
+## 9. 只调试指定 task
 
 装饰器可以全部保留，通过 `execute(only=...)` 选择本次要运行的 task：
 
@@ -414,7 +458,8 @@ def task3(left, right):
 exam.execute(only=task3, output=None)
 ```
 
-这个调用会执行 `task3` 注册的全部 `Case` / `Series`，其他 task 不读取数据也不运行。
+这个调用会执行 `task3` 注册的全部 `Case` / `Batch` / `Series`，其他 task 不读取数据也
+不运行。
 需要同时检查多个 task 时传入可迭代对象：
 
 ```python
@@ -424,7 +469,7 @@ exam.execute(only=(task1, task3), output=None)
 `only=None` 是默认值，表示执行全部已注册 task。应直接传装饰器返回的函数对象；传入
 未注册函数会立即报错，避免因为名字写错而静默得到空答案。
 
-## 9. 可直接套用的完整骨架
+## 10. 可直接套用的完整骨架
 
 ```python
 from utils import Case, Exam, Series, read_data
@@ -438,8 +483,8 @@ exam = Exam(reader=read_data, parser=parse, timeout=2)
 
 
 @exam.task
-def task1(data):
-    ...
+def solve(data):
+    return parse_and_solve(data)
 
 
 @exam.task(Series("2", {"a": (10,), "b": (100,)}, label_separator="."))
@@ -466,7 +511,7 @@ if __name__ == "__main__":
 调试某一题时只需把最后一行临时改成
 `exam.execute(only=task2, output=None)`，不必注释其他 `@exam.task`。
 
-## 10. `read_data` 匹配规则
+## 11. `read_data` 匹配规则
 
 ```python
 read_data("3a")  # 文件名包含字面字符串 3a
@@ -483,7 +528,7 @@ read_data("")    # data/ 下全部普通文件
 也更容易确认匹配范围。极少数需要正则的情况，先用 `read_data("")` 取得字典，再在自定义
 reader 中用 `re.fullmatch` 或 `re.search` 过滤即可。
 
-## 11. 常见错误速查
+## 12. 常见错误速查
 
 | 现象 | 检查 |
 | --- | --- |
@@ -494,8 +539,10 @@ reader 中用 `re.fullmatch` 或 `re.search` 过滤即可。
 | 空串没有全选 | 确保写的是 `files=("",)` 而不是空 tuple `files=()` |
 | parser 没有生效 | 只有 `Input` / `files` 的 reader 结果会解析；检查 Case 是否传了 `parser=None` |
 | parser 收到字典 | 不会；映射会递归处理，parser 只接收叶子值 |
+| 多测文件只执行了一次 | 改用 `Batch(..., calls=...)`，让它产出每次调用的位置参数 tuple |
+| 默认 reader 找不到文件 | 传完整文件名（包括扩展名），并确认文件位于同级 `data/` |
 | 超时模式启动失败 | task、reader、parser、参数、返回值保持可 pickle，入口加 `__main__` guard |
-| bare `@exam.task` 推导错误 | 改用 `@exam.task(Case(...))` 或 `@exam.task(Series(...))` |
+| bare `@exam.task` 推导错误 | 位置参数必须全部对应输入文件；其他结构改用显式 `Case`、`Batch` 或 `Series` |
 | 只想调试一个 task | 保留所有装饰器，调用 `exam.execute(only=task1, output=None)` |
 | `only` 报未注册 task | 直接传被当前 `exam` 装饰或 `add` 过的函数对象 |
 | 没有生成文件 | `execute()` 默认打印；写文件要用 `output=True` |

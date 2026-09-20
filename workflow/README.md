@@ -20,7 +20,7 @@ version-controlled.
 
 [`../.vscode/default.code-snippets`](../.vscode/default.code-snippets) provides
 the `exam-default` Python snippet for inserting the standard `Path`, `DATA`,
-`Case`, and `Exam` file header. [`../.vscode/tasks.json`](../.vscode/tasks.json)
+`Batch`, `Case`, `Rows`, and `Exam` file header. [`../.vscode/tasks.json`](../.vscode/tasks.json)
 registers `Python: Run Current File with PyPy` as the default Build Task, so
 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> runs the active file with PyPy while
 the Python extension's **Run Python File** remains the CPython entry point.

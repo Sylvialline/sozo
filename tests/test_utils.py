@@ -14,16 +14,19 @@ from unittest.mock import Mock, patch
 
 from utils import (
     AnswerBook,
+    Batch,
     Case,
     DSU,
     Exam,
     Graph,
     Input,
+    Rows,
     Series,
     divisors,
     factor_pairs,
     pretty_json,
     read_data,
+    read_data_file,
     read_files,
     to_jsonable,
 )
@@ -34,6 +37,10 @@ from utils._caller import caller_directory
 
 def _identity_task(value):
     return value
+
+
+def _pair_task(value, level):
+    return value, level
 
 
 def _parse_csv(data):
@@ -84,6 +91,8 @@ class CallerDirectoryTests(unittest.TestCase):
         with patch("utils._caller.inspect.currentframe", return_value=None):
             with self.assertRaisesRegex(RuntimeError, r"read_data\(\)"):
                 read_data("input")
+            with self.assertRaisesRegex(RuntimeError, r"read_data_file\(\)"):
+                read_data_file("input.txt")
             with self.assertRaisesRegex(RuntimeError, r"read_files\(\)"):
                 read_files("input.txt")
             with self.assertRaisesRegex(RuntimeError, r"Exam\(\)"):
@@ -94,21 +103,28 @@ class CallerDirectoryTests(unittest.TestCase):
 
 class AnswerBookTests(unittest.TestCase):
     @staticmethod
-    def _make_book(root: Path, timeout=None, show_log=False):
+    def _make_book(
+        root: Path,
+        timeout=None,
+        show_log=False,
+        show_time=False,
+    ):
         caller_path = root / "caller.py"
         namespace = {}
         source = (
             "from utils import AnswerBook\n"
             "\n"
-            "def make(timeout=None, show_log=False):\n"
-            "    return AnswerBook(timeout=timeout, show_log=show_log)\n"
+            "def make(timeout=None, show_log=False, show_time=False):\n"
+            "    return AnswerBook(\n"
+            "        timeout=timeout, show_log=show_log, show_time=show_time\n"
+            "    )\n"
         )
         exec(compile(source, str(caller_path), "exec"), namespace)
-        return namespace["make"](timeout, show_log)
+        return namespace["make"](timeout, show_log, show_time)
 
     def test_runs_task_and_adds_elapsed_time(self):
         with TemporaryDirectory() as temp_dir:
-            book = self._make_book(Path(temp_dir))
+            book = self._make_book(Path(temp_dir), show_time=True)
             result = {"value": 42, "time": "task-owned value"}
 
             with patch(
@@ -132,7 +148,7 @@ class AnswerBookTests(unittest.TestCase):
 
     def test_wraps_non_mapping_results(self):
         with TemporaryDirectory() as temp_dir:
-            book = self._make_book(Path(temp_dir))
+            book = self._make_book(Path(temp_dir), show_time=True)
 
             with patch(
                 "utils.answer_book.perf_counter",
@@ -141,6 +157,16 @@ class AnswerBookTests(unittest.TestCase):
                 answer = book.run("scalar", lambda: 7)
 
             self.assertEqual(answer, {"result": 7, "time": 0.5})
+
+    def test_hides_time_and_does_not_read_clock_by_default(self):
+        with TemporaryDirectory() as temp_dir:
+            book = self._make_book(Path(temp_dir))
+
+            with patch("utils.answer_book.perf_counter") as clock:
+                answer = book.run("plain", lambda: 7)
+
+            self.assertEqual(answer, {"result": 7})
+            clock.assert_not_called()
 
     def test_rejects_duplicate_labels_without_running_task(self):
         with TemporaryDirectory() as temp_dir:
@@ -160,7 +186,9 @@ class AnswerBookTests(unittest.TestCase):
 
     def test_class_timeout_is_stored_as_answer(self):
         with TemporaryDirectory() as temp_dir:
-            book = self._make_book(Path(temp_dir), timeout=0.05)
+            book = self._make_book(
+                Path(temp_dir), timeout=0.05, show_time=True
+            )
 
             answer = book.run("slow", time.sleep, 1)
 
@@ -173,12 +201,12 @@ class AnswerBookTests(unittest.TestCase):
         with TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
 
-            book = self._make_book(root, timeout=0.01)
+            book = self._make_book(root, timeout=0.01, show_time=True)
             answer = book.run("allowed", dict, timeout=2)
             self.assertGreaterEqual(answer["time"], 0)
             self.assertLess(answer["time"], 2)
 
-            book = self._make_book(root, timeout=2)
+            book = self._make_book(root, timeout=2, show_time=True)
             answer = book.run("limited", time.sleep, 1, timeout=0.05)
             self.assertTrue(answer["timeout"])
             self.assertEqual(answer["timeout_limit"], 0.05)
@@ -215,7 +243,9 @@ class AnswerBookTests(unittest.TestCase):
 
     def test_explicit_none_disables_class_timeout(self):
         with TemporaryDirectory() as temp_dir:
-            book = self._make_book(Path(temp_dir), timeout=1)
+            book = self._make_book(
+                Path(temp_dir), timeout=1, show_time=True
+            )
 
             with patch(
                 "utils.answer_book.perf_counter",
@@ -400,7 +430,213 @@ class ExamTests(unittest.TestCase):
         exec(compile(source, str(caller_path), "exec"), namespace)
         return namespace["make"](reader, **kwargs)
 
-    def test_bare_task_decorator_infers_series_and_preserves_function(self):
+    @staticmethod
+    def _make_default_exam(root: Path, **kwargs):
+        caller_path = root / "caller.py"
+        namespace = {}
+        source = (
+            "from utils import Exam\n"
+            "\n"
+            "def make(**kwargs):\n"
+            "    return Exam(**kwargs)\n"
+        )
+        exec(compile(source, str(caller_path), "exec"), namespace)
+        return namespace["make"](**kwargs)
+
+    def test_default_reader_opens_exact_name_from_data_directory(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "q1.txt").write_text("exact", encoding="utf-8")
+            (data_dir / "q1.txt.bak").write_text("other", encoding="utf-8")
+
+            exam = self._make_default_exam(root, show_log=False)
+            exam.add(_identity_task, Case("q1", files=("q1.txt",)))
+
+            book = exam.execute(output=None)
+
+            self.assertEqual(book.answers["q1"], {"result": "exact"})
+
+    def test_batch_reads_once_and_runs_task_for_each_invocation(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "q6.txt").write_text(
+                "0.425437 1\n0.245816 2\n0.0971915 2\n",
+                encoding="utf-8",
+            )
+            seen = []
+
+            def rows(text):
+                return (
+                    (float(value), int(level))
+                    for value, level in map(str.split, text.splitlines())
+                )
+
+            def task(value, level):
+                seen.append((value, level))
+                return value * level
+
+            reader = Mock(
+                side_effect=lambda name: (data_dir / name).read_text(
+                    encoding="utf-8"
+                )
+            )
+            exam = self._make_exam(root, reader, show_log=False)
+            exam.add(
+                task,
+                Batch("q6", "q6.txt", calls=rows),
+            )
+
+            book = exam.execute(output=None)
+
+            reader.assert_called_once_with("q6.txt")
+            self.assertEqual(
+                seen,
+                [(0.425437, 1), (0.245816, 2), (0.0971915, 2)],
+            )
+            self.assertEqual(
+                book.answers["q6"]["result"],
+                [0.425437, 0.491632, 0.194383],
+            )
+
+    def test_default_reader_and_rows_work_in_timeout_process(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "q6.txt").write_text(
+                "0.425437 1\n0.245816 2\n",
+                encoding="utf-8",
+            )
+            exam = self._make_default_exam(
+                root,
+                timeout=2,
+                show_log=False,
+            )
+            exam.add(
+                _pair_task,
+                Batch("q6", "q6.txt", calls=Rows(str, int)),
+            )
+
+            result = exam.execute(output=None).answers["q6"]["result"]
+
+            self.assertEqual(
+                result,
+                [("0.425437", 1), ("0.245816", 2)],
+            )
+
+    def test_batch_calls_accepts_scalar_and_empty_argument_groups(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: name,
+                show_log=False,
+            )
+            exam.add(
+                lambda *args: args,
+                Batch(
+                    "mixed",
+                    "ignored",
+                    calls=lambda _: [1, (2, 3), ()],
+                ),
+            )
+
+            result = exam.execute(output=None).answers["mixed"]["result"]
+
+            self.assertEqual(result, [(1,), (2, 3), ()])
+
+    def test_configured_task_decorator_registers_batch(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "numbers.txt").write_text(
+                "2\n3\n",
+                encoding="utf-8",
+            )
+            exam = self._make_default_exam(root, show_log=False)
+
+            @exam.task(Batch("numbers", "numbers.txt", Rows(int)))
+            def square(value):
+                return value * value
+
+            result = exam.execute(output=None).answers["numbers"]["result"]
+
+            self.assertEqual(result, [4, 9])
+
+    def test_batch_calls_receives_single_parsed_source(self):
+        with TemporaryDirectory() as temp_dir:
+            exam = self._make_exam(
+                Path(temp_dir),
+                lambda name: "1,2,3",
+                parser=_parse_csv,
+                show_log=False,
+            )
+            exam.add(
+                _identity_task,
+                Batch("parsed", "numbers", calls=iter),
+            )
+
+            result = exam.execute(output=None).answers["parsed"]["result"]
+
+            self.assertEqual(result, [1, 2, 3])
+
+    def test_rows_parses_whitespace_fields_and_ignores_blank_lines(self):
+        rows = pickle.loads(pickle.dumps(Rows(str, int)))
+
+        self.assertEqual(
+            list(rows("0.425437 1\n\n  0.245816   2  \n")),
+            [("0.425437", 1), ("0.245816", 2)],
+        )
+
+    def test_rows_without_converters_produces_no_argument_calls(self):
+        self.assertEqual(list(Rows()("K2\nK2\n\n")), [(), ()])
+
+    def test_rows_rejects_wrong_field_count(self):
+        with self.assertRaisesRegex(ValueError, "第 2 行.*2.*1"):
+            list(Rows(str, int)("x 1\ny\n"))
+
+    def test_add_without_group_infers_series_from_arbitrary_function_name(self):
+        with TemporaryDirectory() as temp_dir:
+            loaded = []
+
+            def reader(name):
+                loaded.append(name)
+                return f"data:{name}"
+
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
+            )
+
+            def combine(left, right):
+                return [left, right]
+
+            exam.add(combine)
+            book = exam.execute(output=None)
+
+            self.assertEqual(
+                loaded,
+                [
+                    "combinea1", "combinea2",
+                    "combineb1", "combineb2",
+                    "combinec1", "combinec2",
+                ],
+            )
+            self.assertEqual(
+                list(book.answers),
+                ["combinea", "combineb", "combinec"],
+            )
+            self.assertEqual(
+                book.answers["combinea"]["result"],
+                ["data:combinea1", "data:combinea2"],
+            )
+
+    def test_bare_task_decorator_infers_same_series_and_preserves_function(self):
         with TemporaryDirectory() as temp_dir:
             loaded = []
 
@@ -415,25 +651,41 @@ class ExamTests(unittest.TestCase):
             )
 
             @exam.task
-            def task8(left, right):
-                return [left, right]
+            def solve(data):
+                return data.upper()
 
-            self.assertEqual(
-                task8("left", "right"),
-                ["left", "right"],
-            )
+            self.assertEqual(solve("sample"), "SAMPLE")
 
             book = exam.execute(output=None)
 
+            self.assertEqual(loaded, ["solvea", "solveb", "solvec"])
             self.assertEqual(
-                loaded,
-                ["8a1", "8a2", "8b1", "8b2", "8c1", "8c2"],
+                list(book.answers),
+                ["solvea", "solveb", "solvec"],
             )
-            self.assertEqual(list(book.answers), ["8a", "8b", "8c"])
-            self.assertEqual(
-                book.answers["8a"]["result"],
-                ["data:8a1", "data:8a2"],
+            self.assertEqual(book.answers["solvea"]["result"], "DATA:SOLVEA")
+
+    def test_add_once_runs_no_argument_task_once_using_function_name(self):
+        with TemporaryDirectory() as temp_dir:
+            calls = []
+            reader = Mock()
+            exam = self._make_exam(
+                Path(temp_dir),
+                reader,
+                show_log=False,
             )
+
+            def summary():
+                calls.append("summary")
+                return 8
+
+            self.assertIs(exam.add_once(summary), exam)
+            book = exam.execute(output=None)
+
+            reader.assert_not_called()
+            self.assertEqual(calls, ["summary"])
+            self.assertEqual(list(book.answers), ["summary"])
+            self.assertEqual(book.answers["summary"]["result"], 8)
 
     def test_configured_task_decorator_registers_explicit_case(self):
         with TemporaryDirectory() as temp_dir:
@@ -847,6 +1099,20 @@ class ExamTests(unittest.TestCase):
             Case("x", reader=None)
         with self.assertRaises(TypeError):
             Series("x", reader=None)
+        with self.assertRaises(TypeError):
+            Case("x", calls=1)
+        with self.assertRaises(TypeError):
+            Series("x", calls=1)
+        with self.assertRaises(TypeError):
+            Batch("x", "input", calls=1)
+        with self.assertRaises(TypeError):
+            Batch("x", 1, calls=Rows(str))
+        with self.assertRaises(TypeError):
+            Batch("x", ("left", "right"), calls=Rows(str))
+        with self.assertRaises(TypeError):
+            Batch("x", "left", "right", calls=Rows(str))
+        with self.assertRaises(TypeError):
+            Rows(str, 1)
         with TemporaryDirectory() as temp_dir:
             with self.assertRaises(TypeError):
                 self._make_exam(
@@ -1012,6 +1278,7 @@ class ExamTests(unittest.TestCase):
                 Path(temp_dir),
                 reader,
                 parser=parser,
+                show_time=True,
                 show_log=False,
             )
             exam.add(task, Case("case", files=("input",)))
@@ -1047,6 +1314,7 @@ class ExamTests(unittest.TestCase):
                 book.answers["slow"]["timeout_limit"],
                 0.05,
             )
+            self.assertNotIn("time", book.answers["slow"])
 
 
 class ReadDataTests(unittest.TestCase):
@@ -1130,6 +1398,34 @@ class ReadDataTests(unittest.TestCase):
                 "input", encoding="utf-8"
             )
             self.assertIsNone(load("missing"))
+
+
+class ReadDataFileTests(unittest.TestCase):
+    def test_reads_only_the_exact_named_data_file(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            data_dir = root / "data"
+            data_dir.mkdir()
+            (data_dir / "q1.txt").write_text("exact", encoding="utf-8")
+            (data_dir / "q1.txt.bak").write_text("other", encoding="utf-8")
+
+            self.assertEqual(
+                read_data_file("q1.txt", base_dir=root),
+                "exact",
+            )
+
+    def test_rejects_missing_empty_absolute_and_parent_names(self):
+        with TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+
+            with self.assertRaises(FileNotFoundError):
+                read_data_file("missing.txt", base_dir=root)
+            with self.assertRaises(ValueError):
+                read_data_file("", base_dir=root)
+            with self.assertRaises(ValueError):
+                read_data_file(str(root / "input.txt"), base_dir=root)
+            with self.assertRaises(ValueError):
+                read_data_file("../input.txt", base_dir=root)
 
 
 class ReadFilesTests(unittest.TestCase):

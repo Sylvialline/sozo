@@ -6,6 +6,42 @@ from pathlib import Path
 from ._caller import caller_directory
 
 
+def read_data_file(
+    name: str,
+    *,
+    base_dir: str | Path | None = None,
+) -> str:
+    """Read one exactly named UTF-8 file from the sibling ``data`` directory.
+
+    ``name`` is a relative path below ``data``.  Unlike :func:`read_data`, this
+    function does not perform substring matching and reports a missing file
+    instead of returning ``None``.
+    """
+    if not isinstance(name, str):
+        raise TypeError("name 必须是字符串")
+    if not name:
+        raise ValueError("name 不能为空")
+
+    relative = Path(name)
+    if relative.is_absolute():
+        raise ValueError("name 必须是 data 目录内的相对路径")
+    if ".." in relative.parts:
+        raise ValueError("name 不能离开 data 目录")
+
+    root = (
+        caller_directory("read_data_file()")
+        if base_dir is None
+        else Path(base_dir).resolve()
+    )
+    data_dir = (root / "data").resolve()
+    path = (data_dir / relative).resolve()
+    if not path.is_relative_to(data_dir):
+        raise ValueError("name 不能离开 data 目录")
+    if not path.is_file():
+        raise FileNotFoundError(f"输入文件不存在: data/{relative.as_posix()}")
+    return path.read_text(encoding="utf-8")
+
+
 def read_data(
     name: str,
     *,

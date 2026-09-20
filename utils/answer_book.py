@@ -307,16 +307,20 @@ _USE_DEFAULT_TIMEOUT = _UseDefaultTimeout()
 
 
 class AnswerBook:
-    """Run tasks, collect timed answers, and serialize the results."""
+    """Run tasks, collect answers, and serialize the results."""
 
     def __init__(
         self,
         timeout: float | None = None,
         *,
+        show_time: bool = False,
         show_log: bool = True,
         base_dir: str | Path | None = None,
     ) -> None:
         self.timeout = self._normalize_timeout(timeout)
+        if not isinstance(show_time, bool):
+            raise TypeError("show_time 必须是 bool")
+        self.show_time = show_time
         self.show_log = show_log
         self.answers: dict[str, dict[str, Any]] = {}
         self._base_dir = (
@@ -455,7 +459,7 @@ class AnswerBook:
         timeout: float | None | _UseDefaultTimeout = _USE_DEFAULT_TIMEOUT,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        """Run and time one task, then store its answer under ``label``."""
+        """Run one task and store its answer under ``label``."""
         if label in self.answers:
             self._log("FAILED", label, "答案编号重复")
             raise KeyError(f"答案编号重复: {label}")
@@ -469,9 +473,13 @@ class AnswerBook:
         self._log("START", label, "开始执行")
         try:
             if effective_timeout is None:
-                started = perf_counter()
-                result = task(*args, **kwargs)
-                elapsed = perf_counter() - started
+                if self.show_time:
+                    started = perf_counter()
+                    result = task(*args, **kwargs)
+                    elapsed = perf_counter() - started
+                else:
+                    result = task(*args, **kwargs)
+                    elapsed = None
             else:
                 result, elapsed = self._run_with_timeout(
                     label,
@@ -483,9 +491,10 @@ class AnswerBook:
         except _TaskTimedOut as error:
             answer = {
                 "timeout": True,
-                "time": error.elapsed,
                 "timeout_limit": error.limit,
             }
+            if self.show_time:
+                answer["time"] = error.elapsed
             self.answers[label] = answer
             self._log(
                 "TIMEOUT",
@@ -507,10 +516,16 @@ class AnswerBook:
                 if isinstance(result, Mapping)
                 else result
             ),
-            "time": elapsed,
         }
+        if self.show_time:
+            answer["time"] = elapsed
         self.answers[label] = answer
-        self._log("DONE", label, f"完成，用时 {elapsed:.6f} 秒")
+        message = (
+            f"完成，用时 {elapsed:.6f} 秒"
+            if self.show_time
+            else "完成"
+        )
+        self._log("DONE", label, message)
         return answer
 
     def as_dict(self) -> dict[str, dict[str, Any]]:

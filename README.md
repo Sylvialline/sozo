@@ -46,12 +46,12 @@ python -u .\2025-8\solve.py
 
 只运行特定任务时，在题解末尾使用 `exam.execute(only=task3)`；写入同级
 `answer.json` 时使用 `exam.execute(output=True, only=task3)`。`Exam` 负责题组选择、
-数据读取、计时、日志和答案输出。
+数据读取、可选计时、日志和答案输出。
 
 VS Code 工作区提供两个现场入口：
 
 - 在新建的 Python 文件中输入 `exam-default` 并确认代码补全，可插入 `Path`、`DATA`、
-  `Case` 和 `Exam` 的默认文件头；光标会停在文件头末尾继续编写。
+  `Batch`、`Case`、`Rows` 和 `Exam` 的默认文件头；光标会停在文件头末尾继续编写。
 - Python 扩展内置的 **Run Python File** 继续用当前选择的 CPython；需要用 PyPy 运行
   当前编辑器文件时，按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>。默认 Build Task
   会调用仓库启动器并明确显示实际使用的 PyPy 路径与总耗时。也可从命令面板选择
@@ -87,7 +87,7 @@ python .\workflow\profile_python.py lines .\2022-8\solve.py
 现场文档分成五个入口：
 
 - [`utils/QUICK_REFERENCE.md`](utils/QUICK_REFERENCE.md)：从 `AnswerBook`、`Exam`、
-  `Case`、`Series` 到 `@exam.task` 的答案执行与编排速查；
+  `Case`、`Batch`、`Series` 到 `@exam.task` 的答案执行与编排速查；
 - [`REFERENCE_PATTERNS.md`](REFERENCE_PATTERNS.md)：按题型场景定位历年 `solve.py`
   中值得复用但不适合抽成通用 API 的参考写法；
 - [`samples/README.md`](samples/README.md)：面向 C++17/STL 使用者的 Python 3 离线
@@ -164,34 +164,44 @@ if __name__ == "__main__":
     exam.execute()
 ```
 
+`reader` 现在可以省略。`Exam()` 默认按完整文件名精确读取创建位置同级的
+`data/`，例如 `Case("1", files=("q1.txt",))` 会读取 `data/q1.txt`；文件缺失会直接
+抛出 `FileNotFoundError`。需要旧的文件名包含匹配时，仍可显式使用
+`Exam(reader=read_data)`。
+
 `Series("1")` 默认生成 `1a/1b/1c`，并分别读取 `1a/1b/1c`；如果每个
 case 需要两份数据，写成 `Series("3", input_count=2)`，它会读取
 `3a1/3a2`、`3b1/3b2`、`3c1/3c2`。映射中的 tuple 是放在数据前面的
 task 参数，因此推荐把 task 接口统一写成“普通参数在前，输入数据在后”。
 
-如果函数名是 `task1` 这类形式，而且所有位置参数都是数据输入，还可以直接写：
+所有位置参数都对应输入文件时，可以直接省略 group：
 
 ```python
 @exam.task
-def task1(data):
-    ...
-
-
-@exam.task
-def task3(data1, data2):
-    ...
+def solve(data):
+    return parse_and_solve(data)
 ```
 
-此时题号由函数名推导，位置参数数量决定每个 case 读取几份文件。装饰器返回原函数，
-因此 task 仍可脱离 `Exam` 单独调用。
+这与 `exam.add(solve)` 相同，内部根据位置参数数量生成 `Series("solve", input_count=1)`。
+完整函数名直接作为 label 前缀，不要求形如 `task1`；默认生成 `solvea/solveb/solvec`，
+分别读取同名文件。装饰器返回原函数，因此 task 仍可脱离 `Exam` 单独调用。需要普通参数、
+特殊标签或其他题组结构时，显式传入 `Case`、`Batch` 或 `Series`。
+
+像 `2014-s` 这样，task 不接收参数且只需执行一次时，使用 `add_once`：
+
+```python
+exam.add_once(task1)
+```
+
+它只调用一次 `task1()`，并直接使用函数名 `"task1"` 作为 label；不会生成 `a/b/c`。
 
 只调试某个装饰器 task 时不需要注释其他注册：
 
 ```python
-exam.execute(only=task3, output=None)
+exam.execute(only=solve, output=None)
 ```
 
-这会运行 `task3` 注册的全部 case；也可以传 `only=(task1, task3)` 选择多个 task。
+这会运行 `solve` 注册的全部 case；也可以传 `only=(task1, solve)` 选择多个 task。
 省略 `only` 时仍执行全部任务。
 
 `Case(..., files=("4a", "4b"))` 会按顺序读取指定文件，并把结果追加到
@@ -199,15 +209,34 @@ exam.execute(only=task3, output=None)
 `timeout=None` 可关闭该项限制。`execute()` 默认把答案打印到终端；
 `execute(output=True)` 写入调用代码同级的 `answer.json`，
 `execute(output="result.json")` 可指定文件名，`execute(output=None)` 则只返回
-内部的 `AnswerBook`。读取、解析和 task 调用共同处于计时、错误日志及超时边界内。
+内部的 `AnswerBook`。读取、解析和 task 调用共同处于错误日志及超时边界内；启用
+`show_time=True` 时也会一起计时。
+
+一个文件含有多组测试时，使用独立的 `Batch`。它只接受一个输入源，第三个参数
+`calls` 把一次读取的内容转换为多组完整的 task 位置参数：
+
+```python
+from utils import Batch, Rows
+
+exam = Exam()
+exam.add(task6, Batch("6", "q6.txt", Rows(str, int)))
+```
+
+这里 `q6.txt` 只读取一次，`task6(d, n)` 按行执行，答案是保持原顺序的 list。`calls`
+返回的每个 tuple 会展开为一次调用；标量表示一次单参数调用，空 tuple 表示一次无参数
+调用。`Rows` 把每个非空白行按空白切列，并用给出的转换器逐列处理；`Rows()` 则让每个
+非空白行触发一次无参数调用。这一形式可直接覆盖 `2013-s/data` 的逐行多测格式。
+`Case` 始终只调用 task 一次。`Batch` 没有普通参数和 `files`，因此不会出现“固定参数是
+否追加到每次调用”或“多个文件按 zip 还是笛卡尔积展开”的隐含规则；`calls` 必须产出
+每次调用的全部参数。
 
 `Exam(parser=parse)` 设置全局解析器；reader 返回字典时，会保持键和结构并递归解析叶子
-文本。`Case(..., parser=other_parse)` 或 `Series(..., parser=other_parse)` 可以覆盖全局
-解析器，显式传 `parser=None` 则关闭该 case 或题组的解析。
+文本。`Case`、`Batch` 或 `Series` 都可以覆盖全局 parser，显式传 `parser=None` 则关闭
+该项的解析。
 
-`reader` 也可在 `Case`、`Series` 或单个 `Input` 上覆盖，`parser` 与 `reader` 分别独立
-继承，优先级为 `Input > Case/Series > Exam`。省略配置表示继承；`parser=None` 明确关闭
-解析。需要根目录精确路径或 glob 时使用 `read_files`：
+`reader` 也可在 `Case`、`Batch`、`Series` 或单个 `Input` 上覆盖，`parser` 与 `reader`
+分别独立继承，优先级为 `Input > Case/Batch/Series > Exam`。省略配置表示继承；
+`parser=None` 明确关闭解析。需要根目录精确路径或 glob 时使用 `read_files`：
 
 ```python
 from utils import Case, Exam, Input, read_files
@@ -228,12 +257,12 @@ exam.add(
 `read_data`，经过内部调用层或 Windows 超时子进程时也不会误读 `utils/data/`。
 `Case(..., files=("",))` 会把 `data/` 下全部普通文件作为一个读取结果传给 task。
 
-`AnswerBook` 负责执行 task、记录答案和耗时，并可将结果打印到终端或写入文件：
+`AnswerBook` 负责执行 task、记录答案，并可将结果打印到终端或写入文件：
 
 ```python
 from utils import AnswerBook, read_data as rd
 
-book = AnswerBook(timeout=2)
+book = AnswerBook(timeout=2, show_time=True)
 book.run("1.a", task1, 6, 4, rd("1a"))
 book.run("1.b", task1, 100, 150, rd("1b"), timeout=5)
 book.run("1.c", task1, 10, 10, rd("1c"), timeout=None)
@@ -242,12 +271,13 @@ book.print_json()  # 打印到终端
 book.write_json()  # 写入调用代码同级的 answer.json
 ```
 
-成功任务的答案固定使用 `{"result": task返回值, "time": 秒数}` 结构；即使 task
-返回字典，也完整放在 `result` 下，不会与 `time` 混在同一层。`run()` 未指定
+成功任务默认保存为 `{"result": task返回值}`；传入 `show_time=True` 后增加
+`"time": 秒数`。即使 task 返回字典，也完整放在 `result` 下。未启用计时且没有超时
+限制时直接在当前进程调用 task，也不会读取计时器。`run()` 未指定
 `timeout` 时使用类级限制，传入数值可覆盖它，显式传入 `None` 可关闭该项任务的
 限制。有超时限制的 task 会在独立子进程中执行，超限后子进程将被强制终止，并记录
-包含 `timeout`、`time` 和 `timeout_limit` 的答案；task 及其参数和返回值必须
-支持 `pickle` 序列化。
+`timeout` 和 `timeout_limit`；启用 `show_time` 时还会记录 `time`。task 及其参数和
+返回值必须支持 `pickle` 序列化。
 每项任务默认在 stderr 输出开始、完成、超时或失败日志，传入 `show_log=False`
 可以关闭。`write_json("result.json")` 可以指定其他文件名或路径。
 
