@@ -1,0 +1,40 @@
+{
+  "seed": 20130801,
+  "deterministic": true,
+  "format": "one independent query per line; no leading case count",
+  "decimal_semantics": "each decimal token is parsed exactly via Decimal",
+  "files": {
+    "q1.txt": {
+      "cases": 50000,
+      "sha256": "f40cd56b962cde3edae139093527cb147d5b9cc33229325433b9f4376db67a61"
+    },
+    "q2.txt": {
+      "cases": 2000,
+      "sha256": "1f8abc7ba08ee0f5eab27cdb1414b064936982394f4a0cb1462fe10fa7eced4f"
+    },
+    "q3.txt": {
+      "cases": 32,
+      "sha256": "0d12f82d3c100169a54a79c5bc33c2a551e793c71838e4f814e4489f617233f0"
+    },
+    "q4.txt": {
+      "cases": 75,
+      "sha256": "62bae04ad76e38fb27ec3d8e39e2fce4b7086b547ab553185bef0844093f077f"
+    },
+    "q5.txt": {
+      "cases": 1000,
+      "sha256": "28d1caf46356b746e953426ce3ece63e151257a21bc733b32be69800f37518cf"
+    },
+    "q6.txt": {
+      "cases": 256,
+      "sha256": "af8f2af89b7b058bfaf1dc48e110c9a281d08730b20765f5e276cc2c073df851"
+    }
+  },
+  "ranges": {
+    "q1": "d = 0 or 1e-12 <= |d| <= 1e6",
+    "q2": "d = 0 or 5e-4 <= |d| <= 1e6",
+    "q3": "32 independent requests for fixed K2",
+    "q4": "1 <= n <= 1e9",
+    "q5": "d = 0 or 0.002 <= |d| <= 1e6",
+    "q6": "d = 0 or 0.01 <= |d| <= 1e6; 1 <= n <= 8"
+  }
+}

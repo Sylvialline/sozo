@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "source_crosscheck": {
+    "english_problem_pages": [
+      4,
+      5
+    ],
+    "japanese_problem_pages": [
+      4,
+      5
+    ],
+    "differences": []
+  },
+  "case_counts": {
+    "q1": 50000,
+    "q2": 2000,
+    "q3": 32,
+    "q4": 75,
+    "q5": 1000,
+    "q6": 256
+  },
+  "decimal_tokens_parsed_exactly": true,
+  "binary_float_used_for_decisions": false,
+  "deterministic_regeneration": true,
+  "independent_circle_checks": 8,
+  "on_disk_q2_rechecks": 130,
+  "on_disk_q5_rechecks": 69,
+  "on_disk_q6_rechecks": 40,
+  "independent_koch_checks": 47,
+  "area_formula_checks": 21,
+  "q4_distinct_answers": 62,
+  "q4_distinct_answers_maximal_for_output_format": true,
+  "coverage": [
+    "closed-boundary inclusion",
+    "positive, negative, zero, and negative-zero d",
+    "equivalent decimal spellings",
+    "values immediately on both sides of discontinuities",
+    "very small and much-larger-than-region spacing",
+    "n up to 1e9 for the area formula",
+    "Koch depth up to 8 for lattice counting",
+    "horizontal-boundary and vertex lattice points",
+    "exact Q(sqrt(3)) scanline ordering and rounding"
+  ],
+  "input_sha256": {
+    "q1.txt": "f40cd56b962cde3edae139093527cb147d5b9cc33229325433b9f4376db67a61",
+    "q2.txt": "1f8abc7ba08ee0f5eab27cdb1414b064936982394f4a0cb1462fe10fa7eced4f",
+    "q3.txt": "0d12f82d3c100169a54a79c5bc33c2a551e793c71838e4f814e4489f617233f0",
+    "q4.txt": "62bae04ad76e38fb27ec3d8e39e2fce4b7086b547ab553185bef0844093f077f",
+    "q5.txt": "28d1caf46356b746e953426ce3ece63e151257a21bc733b32be69800f37518cf",
+    "q6.txt": "af8f2af89b7b058bfaf1dc48e110c9a281d08730b20765f5e276cc2c073df851"
+  },
+  "answer_sha256": {
+    "q1.txt": "e4b67110fabb47c760449dee7245866aa0305e4879d31930f75679c4e76bc9b0",
+    "q2.txt": "82d3048177dd84e9a7e7b7b8514b1db513ced3fb006e9f199bbdb92373788f08",
+    "q3.txt": "be40d97fa35ff340ade8c964e25f15f7f6916ed5cf3242c0bf85d2ee2b658295",
+    "q4.txt": "15ba8ce532da990b21af54b0a855d8c5ec8e81362a139849161cfacfc9625329",
+    "q5.txt": "c47043a5ccf8eaf570685f054dabfed4cfda060c42ac4a1801a9195e3d5f1ac2",
+    "q6.txt": "263c10894cf24ebcb96d5127ff41d2f04f50f319c210ed6b54c8dc3090f1bbb2"
+  }
+}
